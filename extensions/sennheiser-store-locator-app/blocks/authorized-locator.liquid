@@ -1,0 +1,218 @@
+{{ 'authorized-locator.css' | asset_url | stylesheet_tag }}
+
+<script>
+  window.STORE_ID = {{ shop.id }};
+  window.SHOP_DOMAIN = "{{ shop.domain }}";
+  window.DISTANCE_UNIT = "{{ block.settings.distance_unit }}";
+  window.RETAILER_API_URL = "https://designer-advice-apart-tales.trycloudflare.com";
+   window.ASSETS = {
+    marker: "{{ 'Mock_Map_Markers.svg' | asset_url }}",
+    location: "{{ 'Location (1).svg' | asset_url }}",
+    location2: "{{ 'Location_2.svg' | asset_url }}",
+    phone: "{{ 'Call (1).svg' | asset_url }}",
+    website: "{{ 'Website (1).svg' | asset_url }}",
+    locationPin: "{{ 'location-pin.svg' | asset_url }}",
+    websiteIcon: "{{ 'website-icon.svg' | asset_url }}",
+    directionsIcon: "{{ 'directions-icon.svg' | asset_url }}"
+  };
+</script>
+
+<script src="{{ 'authorized-locator.js' | asset_url }}" defer></script>
+
+<div class="authorized-locator-page">
+
+  <section class="hero-banner-section {% if block.settings.banner-height == 'medium-height' %}inner-banner{% endif %}">
+    <div class="inner-wrap">
+      <div class="bg-img zoom-animation">
+        {% if block.settings.desk_image != blank %}
+          <img
+            class="desk-img"
+            src="{{ block.settings.desk_image | image_url: width: 2000 }}"
+            alt="{{ block.settings.desk_image.alt | escape }}"
+            width="2000"
+            height="800"
+          >
+        {% endif %}
+        {% if block.settings.mob_image != blank %}
+          <img
+            class="mob-img"
+            src="{{ block.settings.mob_image | image_url: width: 800 }}"
+            alt="{{ block.settings.mob_image.alt | escape }}"
+            width="800"
+            height="600"
+          >
+        {% endif %}
+      </div>
+      <div class="banner-content zoom-animation">
+        <div class="content-inner">
+          <h1>{% if block.settings.heading != blank %}{{ block.settings.heading }}{% else %}{{ page.title }}{% endif %}</h1>
+          {% if block.settings.sub_heading != blank %}
+            <p>{{ block.settings.sub_heading }}</p>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="content-sections">
+
+    <section class="section-wrapper breadcrumb-section">
+      <div class="container">
+        <nav class="breadcrumbs-nav">
+          <ul class="breadcrumbs-items mobile-hide">
+            <li class="breadcrumbs-item">
+              <a class="breadcrumbs-link" href="{{ routes.root_url }}" title="Home"><span>Home</span></a>
+            </li>
+            <li class="breadcrumbs-item">
+              <span class="active">{{ page.title }}</span>
+            </li>
+          </ul>
+          <a class="breadcrumbs-link mobile-show" href="{{ routes.root_url }}" title="Home">
+            <img src="//us.sennheiser-hearing.com/cdn/shop/files/back-button_5893f2d0-6563-4919-ab22-b7ce9e39eb43.svg?v=1759723589" alt="">
+            <span>Home</span>
+          </a>
+        </nav>
+      </div>
+    </section>
+
+    {% if block.settings.page_content_title != blank or block.settings.page_center_content != blank %}
+      <section class="section-wrapper rich-text-section">
+        <div class="container">
+          {% if block.settings.page_content_title != blank %}
+            <h2>{{ block.settings.page_content_title }}</h2>
+          {% endif %}
+          {% if block.settings.page_center_content != blank %}
+            <div>{{ block.settings.page_center_content }}</div>
+          {% endif %}
+        </div>
+      </section>
+    {% endif %}
+
+    <section class="section-wrapper dealer-locations-section">
+      <div class="container">
+
+        <div class="dealer-location-filters-block">
+          <div class="search-container">
+
+            <div class="left-wrap">
+              <div class="input-box dropdown">
+                <input
+                  type="text"
+                  placeholder="Search City, Postal Code, Address"
+                  name="location-address"
+                  class="dropdown-btn"
+                  autocomplete="off"
+                >
+                <div class="dropdown-list location-list" id="locationDropdownList"></div>
+                <button class="current-location-btn" title="Current Location" id="current-location-btn" aria-label="Use current location"></button>
+                <button class="reset-location-btn" title="Reset Location" id="reset-location-btn" style="display:none;" aria-label="Clear location">
+                  <img src="https://cdn.shopify.com/s/files/1/0910/7075/9198/files/white-close.svg?v=1778491243" alt="Clear">
+                </button>
+                <div class="location-loader" id="location-loader" aria-live="polite">
+                  <span class="spinner"></span>
+                  <span class="loader-text">Detecting location...</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="right-wrap">
+              <div class="dropdowns-wrap">
+                <div class="dropdown category" id="categoryDropdown">
+                  <div class="dropdown-btn"><span class="placeholder">Select Category</span></div>
+                  <div class="dropdown-list"></div>
+                </div>
+                <div class="dropdown radius" id="radiusDropdown">
+                  <div class="dropdown-btn"><span class="placeholder">Radius</span></div>
+                  <div class="dropdown-list"></div>
+                </div>
+              </div>
+              <button class="btn btn-primary">Search</button>
+            </div>
+
+          </div>
+        </div>
+
+        <div class="dealer-location-block">
+          <div class="left-block">
+            <div class="upper-block">
+              <h3 id="dealer-title">Dealers</h3>
+              <p id="dealer-subtitle">Showing available dealers, use filters or search to refine results.</p>
+            </div>
+            <div class="lower-block" id="retailers-list">
+              <div id="retailers-loader" class="loader-wrapper">
+                <span class="spinner"></span>
+                <p>Loading Retailers...</p>
+              </div>
+            </div>
+          </div>
+          <div class="right-block">
+            <div class="map" id="map-container"></div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+  </div>
+</div>
+
+{% schema %}
+{
+  "name": "Authorized locator page",
+  "target": "section",
+  "settings": [
+    {
+      "type": "image_picker",
+      "id": "desk_image",
+      "label": "Desktop Image"
+    },
+    {
+      "type": "image_picker",
+      "id": "mob_image",
+      "label": "Mobile Image"
+    },
+    {
+      "type": "select",
+      "id": "banner-height",
+      "label": "Image Banner Height",
+      "default": "full-height",
+      "options": [
+        { "label": "Full Height", "value": "full-height" },
+        { "label": "Medium Height", "value": "medium-height" }
+      ]
+    },
+    {
+      "type": "select",
+      "id": "distance_unit",
+      "label": "Distance Unit",
+      "default": "km",
+      "options": [
+        { "label": "Kilometers (km)", "value": "km" },
+        { "label": "Miles", "value": "miles" }
+      ]
+    },
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "Heading Text",
+      "default": "Authorized Dealer Locator"
+    },
+    {
+      "type": "text",
+      "id": "sub_heading",
+      "label": "Sub Heading Text",
+      "default": "Hear the Difference"
+    },
+    {
+      "type": "text",
+      "id": "page_content_title",
+      "label": "Content Title"
+    },
+    {
+      "type": "richtext",
+      "id": "page_center_content",
+      "label": "Content"
+    }
+  ]
+}
+{% endschema %}

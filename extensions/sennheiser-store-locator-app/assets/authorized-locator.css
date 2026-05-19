@@ -1,0 +1,975 @@
+.authorized-dealer-page .section-wrapper {
+    margin: 0;
+}
+
+.authorized-dealer-page .section-wrapper .section--page-width {
+    display: block;
+}
+
+.authorized-dealer-page .shopify-app-block {
+    width: 100%;
+}
+
+.authorized-dealer-page .shopify-block.shopify-app-block {
+    width: 100%;
+}
+
+.authorized-dealer-page .color-scheme-1 {
+    background-color: #000;
+    color: #fff;
+}
+
+.authorized-locator-page .content-sections {
+    padding: 100px var(--gutter);
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+}
+
+.authorized-locator-page .content-sections .rich-text-section p:last-child {
+    margin-bottom: 2px;
+}
+
+.authorized-locator-page .section-wrapper {
+    margin: 0;
+    font-family: "Sennheiser Neue";
+}
+
+.authorized-locator-page .section-wrapper .container {
+    max-width: 1324px;
+    padding: 0;
+}
+
+.dealer-locations-section .custom-location-card {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 20px;
+    gap: 16px;
+    background: #0F1010;
+    border: 2px solid #222222;
+    border-radius: 4px;
+}
+
+.dealer-locations-section .custom-location-card .title-block {
+    display: flex;
+    flex-wrap: nowrap;
+    align-items: center;
+    gap: 4px;
+    justify-content: space-between;
+    margin-bottom: 12px;
+}
+
+.dealer-locations-section .icon-btn-wrap {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.dealer-locations-section .icon-btn {
+    height: 26px;
+    width: 26px;
+    border-radius: 4px;
+    background-color: #037cc2;
+    border: none;
+    outline: none;
+    text-decoration: none;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.dealer-locations-section .icon-btn img {
+    width: 16px !important;
+    height: auto !important;
+}
+
+.dealer-locations-section .custom-location-card .title-block h4 {
+    font-family: inherit;
+    font-weight: 700;
+    font-size: 16px;
+    line-height: 20px;
+}
+
+.dealer-locations-section .custom-location-card .title-block span {
+    font-weight: 500;
+    font-size: 14px;
+    line-height: 1.4;
+    color: #818183;
+}
+
+.dealer-locations-section .icon-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.dealer-locations-section .btn-wrap {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+}
+
+.dealer-locations-section .btn-wrap .btn {
+    margin: 0;
+    min-width: unset;
+    padding: 5px 10px;
+    min-height: 42px;
+    flex: 1;
+    max-width: 50%;
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.dealer-locations-section .btn-wrap .btn.secondary-btn {
+    border: 2px solid #222222;
+}
+
+.dealer-locations-section .icon-list li {
+    display: flex;
+    color: #818183;
+    font-weight: 500;
+    font-size: 14px;
+    line-height: 1.4;
+    gap: 4px;
+}
+
+.dealer-locations-section .icon-list em {
+    height: 20px;
+    width: 20px;
+    min-width: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.dealer-locations-section .reset-location-btn {
+    background: transparent;
+    border: none;
+    outline: none;
+    width: 20px;
+    min-width: 20px;
+    cursor: pointer;
+}
+
+.dealer-locations-section .icon-list li a {
+    color: inherit;
+    font: inherit;
+    word-break: break-all;
+}
+
+.dealer-locations-section .dealer-location-block {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 24px;
+    max-height: 820px;
+}
+
+.dealer-locations-section .left-block {
+    flex: 0 0 36.25%;
+    max-width: 36.25%;
+    display: flex;
+    flex-direction: column;
+    border-radius: 4px;
+    border: 2px solid #222222;
+    max-height: inherit;
+    overflow: hidden;
+    height: fit-content;
+}
+
+.dealer-locations-section .upper-block {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 16px 24px;
+    gap: 6px;
+    border-bottom: 2px solid #222222;
+}
+
+.dealer-locations-section .upper-block h3 {
+    font-weight: 500;
+    font-size: 18px;
+    line-height: 1.1;
+    font-family: inherit;
+}
+
+.dealer-locations-section .upper-block p {
+    font-size: 14px;
+    line-height: 1.4;
+    color: #818183;
+}
+
+.dealer-locations-section .lower-block {
+    padding: 24px;
+    flex: 1;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    scrollbar-width: thin;
+}
+
+.dealer-locations-section .right-block {
+    flex: 1;
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.dealer-locations-section .right-block .map {
+    height: 100% !important;
+    width: 100%;
+    min-height: 820px;
+}
+
+.dealer-locations-section .right-block iframe,
+.dealer-locations-section .right-block img {
+    height: 100%;
+    width: 100%;
+    object-fit: cover;
+}
+
+.dealer-locations-section .content-block {
+    width: 100%;
+}
+
+.dealer-locations-section .search-container {
+    display: flex;
+    flex-wrap: wrap;
+    margin-bottom: 32px;
+}
+
+.dealer-locations-section .search-container .left-wrap {
+    flex: 0 0 52.79%;
+    max-width: 52.79%;
+}
+
+.dealer-locations-section .input-box {
+    background: #333;
+    border-radius: 4px;
+    padding: 8px 12px;
+    min-height: 42px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    position: relative;
+}
+
+.dealer-locations-section .input-box::before {
+    content: "";
+    background: url("./gray-search-icon.svg")center/contain no-repeat;
+    display: block;
+    height: 20px;
+    width: 20px;
+}
+
+.dealer-locations-section .current-location-btn {
+    background: url("./precision.svg")center/contain no-repeat;
+    display: block;
+    height: 18px;
+    width: 18px;
+    min-width: 18px;
+    cursor: pointer;
+    border: none;
+    outline: none;
+}
+
+.dealer-locations-section .input-box input {
+    width: 100%;
+    background: transparent;
+    border: none;
+    outline: none;
+    color: white;
+    font-family: inherit;
+    font-weight: 500;
+    font-size: 16px;
+    line-height: 1.2;
+    text-overflow: ellipsis;
+}
+
+.dealer-locations-section .dropdown-btn:not(input) .placeholder,
+.dealer-locations-section .input-box input::placeholder {
+    color: #818183;
+    font-weight: 400;
+}
+
+.dealer-locations-section .search-container .right-wrap {
+    flex: 1;
+    display: flex;
+    flex-wrap: wrap;
+}
+
+.dealer-locations-section .search-container,
+.dealer-locations-section .search-container .right-wrap,
+.dealer-locations-section .dropdowns-wrap {
+    gap: 20px;
+}
+
+.dealer-locations-section .dropdowns-wrap {
+    flex: 1;
+    display: flex;
+    flex-wrap: wrap;
+}
+
+.dealer-locations-section .right-wrap.no-filters .dropdowns-wrap {
+    display: none;
+}
+
+.dealer-locations-section .dropdown:not(.input-box) {
+    position: relative;
+    flex: 1;
+    white-space: nowrap;
+}
+
+.dealer-locations-section .dropdown-btn:not(input) {
+    background: #333;
+    color: #fff;
+    padding: 8px 12px;
+    border-radius: 4px;
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    min-height: 42px;
+    font-family: inherit;
+    font-weight: 500;
+    font-size: 16px;
+    line-height: 1.2;
+    overflow: hidden;
+}
+
+.dealer-locations-section .dropdown-btn:not(input) span {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    text-overflow: ellipsis;
+    flex: 1;
+    overflow: hidden;
+    line-clamp: 1;
+    -webkit-line-clamp: 1;
+}
+
+.dealer-locations-section .search-container .btn {
+    min-height: 42px;
+    padding: 8px 21px;
+    font-size: 16px;
+    font-family: inherit;
+    font-weight: 500;
+    line-height: 1.2;
+}
+
+.dealer-locations-section .dropdown-btn:not(input)::after {
+    content: "";
+    background: url("./down-arrow.svg")center/14px no-repeat;
+    width: 20px;
+    min-width: 20px;
+    height: 20px;
+    display: block;
+    margin-right: -4px;
+}
+
+.dealer-locations-section .dropdown-list {
+    position: absolute;
+    top: 105%;
+    left: 0;
+    min-width: 100%;
+    background: #333;
+    border-radius: 4px;
+    display: none;
+    overflow: hidden;
+    z-index: 10;
+    font-size: 14px;
+    font-weight: 500;
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+.dealer-locations-section .dropdown-list div {
+    padding: 11px;
+    color: white;
+    cursor: pointer;
+}
+
+.dealer-locations-section .dropdown.active .dropdown-list {
+    display: block;
+}
+
+.dealer-locations-section .radius {
+    min-width: 120px;
+}
+
+.dealer-locations-section .location-list-item {
+    font-weight: normal;
+}
+
+.dealer-locations-section .location-list-item h5 {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    align-items: flex-start;
+}
+
+.dealer-locations-section .location-list-item p {
+    line-clamp: 1;
+    text-overflow: ellipsis;
+    -webkit-line-clamp: 1;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.dealer-locations-section .location-list-item .icon-wrap {
+    max-width: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.dealer-locations-section .location-list-item .icon-wrap img {
+    width: 100%;
+}
+
+.dealer-locations-section .no-retailers-found {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 24px 0;
+    text-align: center;
+    max-width: 393px;
+    margin: 0 auto;
+}
+
+.dealer-location-block .gm-style .upper-wrap>*:last-child {
+    padding-right: 60px;
+    min-height: 24px;
+    display: flex;
+    align-items: center;
+}
+
+.dealer-location-block .gm-style .upper-wrap .icon-btn {
+    height: 24px;
+    width: 24px;
+}
+
+.dealer-location-block .gm-style .gm-style-iw-c {
+    padding: 12px 14px !important;
+    border-radius: 8px !important;
+    box-shadow: 0px 12px 32px 0px #00000026 !important;
+}
+
+.dealer-location-block .gm-style-iw-ch {
+    display: none;
+}
+
+.dealer-location-block .gm-style .custom-footer-block {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    position: absolute;
+    bottom: 19px;
+    right: 16px;
+}
+
+.dealer-location-block .gm-style .gm-style-iw-d {
+    overflow: auto !important;
+}
+
+.dealer-location-block .gm-ui-hover-effect {
+    position: absolute !important;
+    right: 10px;
+    top: 10px;
+    height: 16px !important;
+    width: 16px !important;
+}
+
+.dealer-location-block .gm-ui-hover-effect>span {
+    height: 16px !important;
+    width: 16px !important;
+    margin: 0 !important;
+}
+
+.dealer-location-block .gm-style .btn {
+    min-height: 34px;
+    font-size: 12px;
+    font-family: inherit;
+    font-weight: 500;
+}
+
+/* TOAST CONTAINER */
+#toast-container {
+    position: fixed !important;
+    bottom: 24px !important;
+    right: 24px !important;
+    top: auto !important;
+    left: auto !important;
+
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+
+    z-index: 999999;
+    pointer-events: none;
+}
+
+/* TOAST */
+.toast {
+    pointer-events: auto;
+    min-width: 280px;
+    max-width: 380px;
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 14px 16px;
+    background: #fff;
+    color: #1f2937;
+    border-radius: 12px;
+    box-shadow:
+        0 10px 25px -5px rgba(0, 0, 0, .15),
+        0 4px 10px -5px rgba(0, 0, 0, .08);
+    border-left: 4px solid;
+    font: 500 14px/1.4 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    opacity: 0;
+    transform: translateX(120%);
+    transition:
+        opacity .25s ease,
+        transform .35s cubic-bezier(.21, 1.02, .73, 1);
+    position: relative;
+    overflow: hidden;
+}
+
+.toast.show {
+    opacity: 1;
+    transform: translateX(0);
+}
+
+.toast.hide {
+    opacity: 0;
+    transform: translateX(120%);
+}
+
+/* ICON */
+.toast-icon {
+    flex-shrink: 0;
+    width: 20px;
+    height: 20px;
+    display: grid;
+    place-items: center;
+    border-radius: 50%;
+    color: #fff;
+    font-size: 13px;
+    font-weight: 700;
+    margin-top: 2px;
+}
+
+/* MESSAGE */
+.toast-message {
+    flex: 1;
+    padding-top: 1px;
+}
+
+/* CLOSE BUTTON */
+.toast-close {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: #7f8999;
+    font-size: 22px;
+    line-height: 1;
+    padding: 0 2px;
+    font-weight: 500;
+    transition: color .15s;
+}
+
+.toast-close:hover {
+    color: #374151;
+}
+
+/* PROGRESS */
+.toast-progress {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    height: 3px;
+    width: 100%;
+    transform-origin: left;
+    animation: toast-progress linear forwards;
+}
+
+@keyframes toast-progress {
+    from {
+        transform: scaleX(1);
+    }
+
+    to {
+        transform: scaleX(0);
+    }
+}
+
+/* SUCCESS */
+.toast.success {
+    border-color: #10b981;
+}
+
+.toast.success .toast-icon,
+.toast.success .toast-progress {
+    background: #10b981;
+}
+
+/* ERROR */
+.toast.error {
+    border-color: #ef4444;
+}
+
+.toast.error .toast-icon,
+.toast.error .toast-progress {
+    background: #ef4444;
+}
+
+/* INFO */
+.toast.info {
+    border-color: #3b82f6;
+}
+
+.toast.info .toast-icon,
+.toast.info .toast-progress {
+    background: #3b82f6;
+}
+
+/* WARNING */
+.toast.warning {
+    border-color: #f59e0b;
+}
+
+.toast.warning .toast-icon,
+.toast.warning .toast-progress {
+    background: #f59e0b;
+}
+
+/* DARK MODE */
+@media (prefers-color-scheme: dark) {
+    .toast {
+        background: #1f2937;
+        color: #ebecee;
+    }
+
+    .toast-close {
+        color: #9ca3af;
+    }
+
+    .toast-close:hover {
+        color: #f9fafb;
+    }
+}
+
+.dealer-location-block .no-retailers-found p {
+    font-weight: 500;
+    font-size: 14px;
+    line-height: 1.4;
+    color: #818183;
+    max-width: 322px;
+    margin: 0 auto;
+}
+
+.dealer-location-block .no-retailers-found h3 {
+    font-family: inherit;
+    font-weight: 700;
+    font-size: 16px;
+    line-height: 1.25;
+    margin-bottom: 4px;
+}
+
+.dealer-location-block .no-retailers-found .empty-icon {
+    width: 45px;
+    margin-bottom: 24px;
+}
+
+/* ============================================================
+   LOCATION LOADER - Matches Theme
+   ============================================================ */
+.dealer-locations-section .input-box .location-loader {
+    display: none;
+    align-items: center;
+    gap: 6px;
+    position: absolute;
+    top: 50%;
+    right: 44px;
+    /* sits beside the location button */
+    transform: translateY(-50%);
+    pointer-events: none;
+    z-index: 5;
+}
+
+.dealer-locations-section .input-box .location-loader.active {
+    display: flex;
+}
+
+/* Spinner - matches theme blue accent */
+.dealer-locations-section .input-box .location-loader .spinner {
+    width: 16px;
+    height: 16px;
+    min-width: 16px;
+    border: 2px solid #444444;
+    border-top-color: #ffffff;
+    border-radius: 50%;
+    animation: locator-spin 0.75s linear infinite;
+}
+
+@keyframes locator-spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* Loader text - matches placeholder style */
+.dealer-locations-section .input-box .location-loader .loader-text {
+    color: #818183;
+    font-family: "Sennheiser Neue", sans-serif;
+    font-weight: 400;
+    font-size: 14px;
+    line-height: 1.2;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 160px;
+}
+
+/* Dim input while loading */
+.dealer-locations-section .input-box.loading input {
+    opacity: 0.4;
+    pointer-events: none;
+}
+
+/* Hide current location button while loading */
+.dealer-locations-section .input-box.loading .current-location-btn {
+    opacity: 0.3;
+    pointer-events: none;
+}
+
+.dealer-location-block .leaflet-pane {
+    z-index: 1;
+}
+
+.dealer-location-block .leaflet-zoom-box {
+    z-index: 2;
+}
+
+.dealer-location-block .leaflet-pane {
+    z-index: 1;
+}
+
+.dealer-location-block .leaflet-tile-pane {
+    z-index: 1;
+}
+
+.dealer-location-block .leaflet-overlay-pane {
+    z-index: 1;
+}
+
+.dealer-location-block .leaflet-shadow-pane {
+    z-index: 1;
+}
+
+.dealer-location-block .leaflet-marker-pane {
+    z-index: 1;
+}
+
+.dealer-location-block .leaflet-tooltip-pane {
+    z-index: 1;
+}
+
+.dealer-location-block .leaflet-popup-pane {
+    z-index: 1;
+}
+
+.dealer-location-block .leaflet-map-pane canvas {
+    z-index: 1;
+}
+
+.dealer-location-block .leaflet-map-pane svg {
+    z-index: 1;
+}
+
+.dealer-location-block .leaflet-control {
+    z-index: 2;
+}
+
+.dealer-location-block .leaflet-top,
+.dealer-location-block .leaflet-bottom {
+    z-index: 2;
+}
+
+.loader-wrapper {
+    text-align: center;
+    padding: 40px;
+}
+
+.spinner {
+    width: 40px;
+    height: 40px;
+    border: 4px solid #ddd;
+    border-top: 4px solid #000;
+    border-radius: 50%;
+    display: inline-block;
+    animation: spin 1s linear infinite;
+}
+
+
+@keyframes spin {
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+@media (hover: hover) {
+    .dealer-locations-section .icon-list li a:hover {
+        text-decoration: underline;
+    }
+
+    .dealer-locations-section .btn-wrap .btn.secondary-btn:hover {
+        background-color: #222222;
+    }
+
+    .dealer-locations-section .dropdown-list div:hover {
+        background: #444;
+    }
+}
+
+@media (max-width:1199px) {
+    .dealer-locations-section .search-container .left-wrap {
+        flex: 0 0 50%;
+        max-width: 50%;
+    }
+
+    .dealer-locations-section .dropdown.category {
+        flex: 0 0 58%;
+        max-width: 58%;
+    }
+}
+
+@media (max-width: 1024px) {
+    .authorized-locator-page .content-sections {
+        gap: 16px;
+    }
+
+    .dealer-locations-section .search-container,
+    .dealer-locations-section .search-container .right-wrap,
+    .dealer-locations-section .dropdowns-wrap {
+        gap: 16px;
+    }
+
+    .dealer-locations-section .dealer-location-block {
+        gap: 24px 16px;
+    }
+
+    .dealer-locations-section .left-block {
+        flex: 0 0 40%;
+        max-width: 40%;
+    }
+}
+
+@media (max-width: 991px) {
+
+    .dealer-locations-section .search-container .left-wrap {
+        flex: 0 0 100%;
+        max-width: 100%;
+    }
+
+    .dealer-locations-section .dropdown.category {
+        flex: 0 0 65%;
+        max-width: 65%;
+    }
+
+    .dealer-locations-section .dropdowns-wrap {
+        flex-wrap: nowrap;
+    }
+
+    .dealer-locations-section .input-box .location-loader .loader-text {
+        max-width: 120px;
+    }
+}
+
+@media (max-width: 900px) {
+
+    .dealer-locations-section .icon-btn {
+        height: 24px;
+        width: 24px;
+    }
+
+    .dealer-locations-section .dealer-location-block {
+        max-height: unset;
+    }
+
+    .dealer-locations-section .left-block {
+        flex: 0 0 100%;
+        max-width: 100%;
+        max-height: 820px;
+    }
+
+    .authorized-locator-page .content-sections {
+        padding: 60px var(--gutter);
+    }
+
+    .dealer-locations-section .right-block .map {
+        aspect-ratio: 1 / 1;
+        min-height: unset;
+    }
+
+    .dealer-locations-section .dropdown-list {
+        max-height: 350px;
+    }
+}
+
+@media (max-width: 667px) {
+    .hero-banner-section {
+        display: none;
+    }
+
+    .authorized-locator-page .content-sections {
+        padding: 94px var(--gutter) 60px;
+    }
+
+    .dealer-locations-section .dropdowns-wrap {
+        flex: 0 0 100%;
+        max-width: 100%;
+        gap: 16px 8px;
+        flex-wrap: wrap;
+    }
+
+    .dealer-locations-section .dropdown.category,
+    .dealer-locations-section .search-container .btn {
+        flex: 1;
+        max-width: 100%;
+    }
+
+    .dealer-locations-section .search-container .btn {
+        margin-top: 4px;
+    }
+
+    .dealer-locations-section .input-box .location-loader {
+        right: 40px;
+    }
+
+    .dealer-locations-section .input-box .location-loader .loader-text {
+        display: none;
+        /* only show spinner on mobile */
+    }
+}
+
+@media (max-width: 480px) {
+
+    .dealer-locations-section .dropdown.category,
+    .dealer-locations-section .dropdown:not(.input-box) {
+        flex: 0 0 100%;
+        max-width: 100%;
+    }
+}
+
+@media (max-width: 375px) {
+    .dealer-locations-section .btn-wrap .btn {
+        max-width: 100%;
+    }
+}
