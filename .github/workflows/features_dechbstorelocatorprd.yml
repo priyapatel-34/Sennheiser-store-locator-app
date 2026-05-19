@@ -23,6 +23,9 @@ jobs:
         with:
           node-version: '24.x'
 
+      - name: Install Shopify CLI
+        run: npm install -g @shopify/cli @shopify/app
+
       - name: npm install, build, and test
         run: |
           npm install
