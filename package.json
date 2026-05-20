@@ -5,8 +5,10 @@
   "license": "UNLICENSED",
   "scripts": {
     "shopify": "shopify",
-    "build": "shopify app build",
-    "dev": "shopify app dev",
+    "build": "npm install --prefix web/frontend && npm run build --prefix web/frontend",
+    "dev": "npm run dev --prefix web",
+    "start": "npm run serve --prefix web",
+    "serve": "npm run serve --prefix web",
     "info": "shopify app info",
     "generate": "shopify app generate",
     "deploy": "shopify app deploy"
