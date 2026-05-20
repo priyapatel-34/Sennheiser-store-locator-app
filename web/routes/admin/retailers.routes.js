@@ -7,7 +7,7 @@ import {
   deleteRetailer,
   getRetailerById,
   importRetailersCSV,
-} from "../../controllers/admin/retailers.controller.js";
+} from "../../controller/admin/retailers.controller.js";
 
 const router = express.Router();
 const upload = multer({
