@@ -685,19 +685,22 @@ function renderRetailers(data) {
 function renderCategories(categories) {
     const dropdown = document.querySelector('#categoryDropdown .dropdown-list');
     if (!dropdown) return;
-
     dropdown.innerHTML = '';
     categories.forEach(cat => {
-        const div = document.createElement('div');
-        div.innerText = cat.name;
-        div.addEventListener('click', e => {
-            e.stopPropagation();
-            document.querySelector('#categoryDropdown .dropdown-btn span').innerText = cat.name;
-            document.getElementById('categoryDropdown').classList.remove('active');
-        });
-        dropdown.appendChild(div);
+      const div = document.createElement('div');
+      div.innerText = cat.name;
+      div.addEventListener('click', e => {
+        e.stopPropagation();
+        const span = document.querySelector('#categoryDropdown .dropdown-btn span');
+        if (span) {
+          span.innerText = cat.name;
+          span.classList.remove('placeholder');
+        }
+        document.getElementById('categoryDropdown').classList.remove('active');
+      });
+      dropdown.appendChild(div);
     });
-}
+  }
 
 // UI HELPERS
 
