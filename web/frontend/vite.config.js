@@ -2,6 +2,8 @@ import { defineConfig } from "vite";
 import { dirname } from "path";
 import { fileURLToPath } from "url";
 import react from "@vitejs/plugin-react";
+import dotenv from "dotenv";
+dotenv.config({ path: "../../.env" });
 
 if (
   process.env.npm_lifecycle_event === "build" &&
