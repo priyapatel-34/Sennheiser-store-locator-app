@@ -160,6 +160,20 @@ async function reinitializeMap({ showUserLocation = false, userOnly = false } = 
     fitBoundsToMarkers();
 }
 
+//masked mobile numbers
+function maskPhoneNumber(phone) {
+    if (!phone) return '';
+    const cleaned = phone.trim();
+    const match = cleaned.match(/^(\+\d{1,4})?\s*(\d+)$/);
+    if (!match) {
+      return '••••••••';
+    }
+    const countryCode = match[1] || '';
+    const number = match[2];
+    const visible = number.slice(0, 3);
+    return `${countryCode} ${visible} ••• ••••`.trim();
+  }
+  
 // INFO WINDOW
 
 function buildPopupHTML(store) {
@@ -177,7 +191,24 @@ function buildPopupHTML(store) {
         <h4 style="padding-right:18px;margin:0 0 8px;color:#000;font-size:16px;font-weight:600;line-height:20px">${store.name}</h4>
         <p style="margin:4px 0;display:flex;gap:6px">${icon(window.ASSETS.location, 'Location')} ${address || 'N/A'}</p>
         ${store.distance ? `<p style="margin:4px 0"><strong>Distance:</strong> ${formatDistance(store.distance)}</p>` : ''}
-        ${store.phone ? `<p style="margin:4px 0;display:flex;gap:6px">${icon(window.ASSETS.phone, 'Phone')} <a href="tel:${store.phone}" style="color:inherit">${store.phone}</a></p>` : ''}
+        ${store.phone ? `
+            <p style="margin:4px 0;display:flex;gap:6px;align-items:center">
+              ${icon(window.ASSETS.phone, 'Phone')}
+              <span class="phone-wrapper">
+                <span class="masked-phone">
+                  ${maskPhoneNumber(store.phone)}
+                </span>
+                <button
+                  type="button"
+                  class="show-number-btn"
+                  data-phone="${encodePhone(store.phone)}"
+                  onclick="revealPhoneNumber(this)"
+                >
+                  Show Number
+                </button>
+              </span>
+            </p>
+          ` : ''}
       </div>
       <div class="custom-footer-block">
        <div class="icon-btn-wrap">
@@ -674,7 +705,26 @@ function renderRetailers(data) {
           </div>
           <ul class="icon-list">
             ${iconLi(window.ASSETS.location, 'Location', address || 'Address not available')}
-            ${item.phone ? `<li><em><img src="${window.ASSETS.phone}" alt="Phone"></em><a href="tel:${item.phone}">${item.phone}</a></li>` : ''}
+            ${item.phone ? `
+                <li>
+                  <em>
+                    <img src="${window.ASSETS.phone}" alt="Phone">
+                  </em>
+                  <div class="phone-wrapper">
+                    <span class="masked-phone">
+                      ${maskPhoneNumber(item.phone)}
+                    </span>
+                    <button
+                      type="button"
+                      class="show-number-btn"
+                      data-phone="${encodePhone(item.phone)}"
+                      onclick="revealPhoneNumber(this)"
+                    >
+                      Show Number
+                    </button>
+                  </div>
+                </li>
+              ` : ''}
             ${item.website_url ? `<li><em><img src="${window.ASSETS.website}" alt="Website"></em><a href="${item.website_url}" target="_blank" rel="noopener">${cleanUrl(item.website_url)}</a></li>` : ''}
           </ul>
         </div>
