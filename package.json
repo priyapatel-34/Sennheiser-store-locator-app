@@ -5,13 +5,12 @@
   "license": "UNLICENSED",
   "scripts": {
     "shopify": "shopify",
-    "build": "npm install --prefix web/frontend && npm run build --prefix web/frontend",
-    "dev": "npm run dev --prefix web",
-    "start": "npm run serve --prefix web",
-    "serve": "npm run serve --prefix web",
-    "info": "shopify app info",
-    "generate": "shopify app generate",
-    "deploy": "shopify app deploy"
+    "start": "node ./web/index.js",
+    "build": "npx shopify app build",
+    "dev": "npm run shopify app dev",
+    "info": "npm run shopify app info",
+    "generate": "npm run shopify app generate",
+    "deploy": "npm run shopify app deploy"
   },
   "dependencies": {
     "@shopify/polaris": "^13.9.5",
