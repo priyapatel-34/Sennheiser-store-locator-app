@@ -111,14 +111,6 @@ app.use(shopify.cspHeaders());
 
 app.use(serveStatic(STATIC_PATH, { index: false }));
 
-console.log("ENV CHECK:");
-console.log("API KEY:", process.env.SHOPIFY_API_KEY);
-console.log("API SECRET:", process.env.SHOPIFY_API_SECRET);
-console.log("port:", process.env.PORT);
-
-console.log("HOST:", process.env.HOST);
-console.log("SCOPES:", process.env.SCOPES);
-
 app.use("/*", shopify.ensureInstalledOnShop(), (req, res) => {
   return res
     .status(200)
