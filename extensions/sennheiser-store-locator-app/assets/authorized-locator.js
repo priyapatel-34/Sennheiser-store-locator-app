@@ -174,7 +174,7 @@ function buildPopupHTML(store) {
     return `
     <div style="min-width:220px;max-width:280px;font-family:'Sennheiser Neue';font-size:12px;line-height:1.5;padding:4px 2px;color:#818183;font-weight:500">
       <div class="upper-wrap">
-        <h4 style="padding-right:18px;margin:0 0 8px;color:#000;font-size:16px;font-weight:600">${store.name}</h4>
+        <h4 style="padding-right:18px;margin:0 0 8px;color:#000;font-size:16px;font-weight:600;line-height:20px">${store.name}</h4>
         <p style="margin:4px 0;display:flex;gap:6px">${icon(window.ASSETS.location, 'Location')} ${address || 'N/A'}</p>
         ${store.distance ? `<p style="margin:4px 0"><strong>Distance:</strong> ${formatDistance(store.distance)}</p>` : ''}
         ${store.phone ? `<p style="margin:4px 0;display:flex;gap:6px">${icon(window.ASSETS.phone, 'Phone')} <a href="tel:${store.phone}" style="color:inherit">${store.phone}</a></p>` : ''}

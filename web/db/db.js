@@ -15,11 +15,13 @@ if (process.env.NODE_ENV !== "production") {
 
 // Pool
 export const pool = new Pool({
-  host: process.env.PG_HOST,
-  user: process.env.PG_USER,
-  password: process.env.PG_PASSWORD,
+  host: process.env.DATABASE_HOST,
+  user: process.env.DATABASE_USER,
+  password: process.env.DATABASE_PASSWORD,
   database: process.env.PG_DATABASE,
-  port: process.env.PG_PORT || 5432,
-  max: 10,
-  ssl: false
+  port: process.env.DATABASE_PORT || 5432,
+  ssl:
+    process.env.DATABASE_SSL === "true"
+      ? { rejectUnauthorized: false }
+      : false,
 });

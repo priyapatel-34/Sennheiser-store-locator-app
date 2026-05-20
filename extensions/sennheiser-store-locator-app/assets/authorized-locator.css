@@ -324,6 +324,11 @@
     white-space: nowrap;
 }
 
+.dealer-locations-section .dropdown {
+    flex: 0 0 62%;
+    max-width: 62%;
+}
+
 .dealer-locations-section .dropdown-btn:not(input) {
     background: #333;
     color: #fff;
