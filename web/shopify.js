@@ -1,26 +1,37 @@
-import { BillingInterval } from "@shopify/shopify-api";
+import dotenv from "dotenv";
+dotenv.config();
+
+import { BillingInterval, LATEST_API_VERSION } from "@shopify/shopify-api";
 import { shopifyApp } from "@shopify/shopify-app-express";
-// import { SQLiteSessionStorage } from "@shopify/shopify-app-session-storage-sqlite";
 import { restResources } from "@shopify/shopify-api/rest/admin/2024-10";
 import { PostgreSQLSessionStorage } from "@shopify/shopify-app-session-storage-postgresql";
-// const DB_PATH = `${process.cwd()}/database.sqlite`;
+
+const dbUser =
+  process.env.DATABASE_USER ||
+  "adminuser@dechb-storelocator-psql-prd";
+const dbPassword = process.env.DATABASE_PASSWORD;
+const dbHost =
+  process.env.DATABASE_HOST ||
+  "dechb-storelocator-psql-prd.postgres.database.azure.com";
+
+const dbPort = process.env.DATABASE_PORT || "5432";
+
+const dbName = process.env.DATABASE_NAME || "retailer_locator";
+
+const DATABASE_URL = `postgres://${encodeURIComponent(
+  dbUser
+)}:${encodeURIComponent(
+  dbPassword
+)}@${dbHost}:${dbPort}/${dbName}?sslmode=require`;
+
+console.log("DATABASE_URL CREATED:", DATABASE_URL ? "YES" : "NO");
+
 const sessionStorage = new PostgreSQLSessionStorage(
-  process.env.DATABASE_HOST
+  DATABASE_URL
 );
-console.log("ENV CHECK:");
-console.log("API KEY:", process.env.SHOPIFY_API_KEY);
-console.log("API SECRET:", process.env.SHOPIFY_API_SECRET);
-console.log("port:", process.env.PORT);
 
-console.log("HOST:", process.env.HOST);
-console.log("SCOPES:", process.env.SCOPES);
-console.log("DATABASE_HOST:", process.env.DATABASE_HOST);
-
-// The transactions with Shopify will always be marked as test transactions, unless NODE_ENV is production.
-// See the ensureBilling helper to learn more about billing in this template.
 const billingConfig = {
   "My Shopify One-Time Charge": {
-    // This is an example configuration that would do a one-time charge for $5 (only USD is currently supported)
     amount: 5.0,
     currencyCode: "USD",
     interval: BillingInterval.OneTime,
@@ -30,28 +41,113 @@ const billingConfig = {
 const shopify = shopifyApp({
   api: {
     restResources,
-    apiVersion: "2026-07",
+    apiVersion: LATEST_API_VERSION,
+
     apiKey: process.env.SHOPIFY_API_KEY,
     apiSecretKey: process.env.SHOPIFY_API_SECRET,
-    hostName: process.env.HOST.replace(/^https?:\/\//, ""),
+
+    hostName: (process.env.HOST || "").replace(
+      /^https?:\/\//,
+      ""
+    ),
+
     hostScheme: "https",
+
     isEmbeddedApp: true,
+
     future: {
       customerAddressDefaultFix: true,
       lineItemBilling: true,
       unstable_managedPricingSupport: true,
     },
+
     billing: undefined,
   },
+
   auth: {
     path: "/api/auth",
     callbackPath: "/api/auth/callback",
   },
+
   webhooks: {
     path: "/api/webhooks",
   },
-  // This should be replaced with your preferred storage strategy
-  sessionStorage
+
+  sessionStorage,
 });
 
 export default shopify;
+
+// import dotenv from "dotenv";
+// dotenv.config();
+
+// import { BillingInterval, LATEST_API_VERSION } from "@shopify/shopify-api";
+// import { shopifyApp } from "@shopify/shopify-app-express";
+// import { restResources } from "@shopify/shopify-api/rest/admin/2024-10";
+// import { PostgreSQLSessionStorage } from "@shopify/shopify-app-session-storage-postgresql";
+
+// // PostgreSQL Session Storage
+// const sessionStorage = new PostgreSQLSessionStorage(
+//   process.env.DATABASE_URL
+// );
+
+// // Environment Variable Checks
+// console.log("ENV CHECK:");
+// console.log("API KEY:", process.env.SHOPIFY_API_KEY);
+// console.log("API SECRET:", process.env.SHOPIFY_API_SECRET);
+// console.log("PORT:", process.env.PORT);
+// console.log("HOST:", process.env.HOST);
+// console.log("SCOPES:", process.env.SCOPES);
+// console.log("DATABASE_URL:", process.env.DATABASE_URL);
+
+// // Billing Configuration
+// const billingConfig = {
+//   "My Shopify One-Time Charge": {
+//     amount: 5.0,
+//     currencyCode: "USD",
+//     interval: BillingInterval.OneTime,
+//   },
+// };
+
+// // Shopify App Configuration
+// const shopify = shopifyApp({
+//   api: {
+//     restResources,
+//     apiVersion: LATEST_API_VERSION,
+
+//     apiKey: process.env.SHOPIFY_API_KEY,
+//     apiSecretKey: process.env.SHOPIFY_API_SECRET,
+
+//     hostName: (process.env.HOST || "").replace(
+//       /^https?:\/\//,
+//       ""
+//     ),
+
+//     hostScheme: "https",
+
+//     isEmbeddedApp: true,
+
+//     future: {
+//       customerAddressDefaultFix: true,
+//       lineItemBilling: true,
+//       unstable_managedPricingSupport: true,
+//     },
+
+//     // Enable billing if needed
+//     billing: undefined,
+//     // billing: billingConfig,
+//   },
+
+//   auth: {
+//     path: "/api/auth",
+//     callbackPath: "/api/auth/callback",
+//   },
+
+//   webhooks: {
+//     path: "/api/webhooks",
+//   },
+
+//   sessionStorage,
+// });
+
+// export default shopify;
