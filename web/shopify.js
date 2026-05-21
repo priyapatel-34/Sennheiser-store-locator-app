@@ -17,7 +17,7 @@ const dbHost =
 const dbPort = process.env.DATABASE_PORT || "5432";
 
 const dbName = process.env.DATABASE_NAME || "retailer_locator";
-const ssl = process.env.DATABASE_SSL || 'true';
+const ssl = process.env.DATABASE_SSL || 'require';
 const DATABASE_URL = `postgres://${encodeURIComponent(
   dbUser
 )}:${encodeURIComponent(
