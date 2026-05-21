@@ -1,7 +1,7 @@
 import dotenv from "dotenv";
 dotenv.config();
 
-import { BillingInterval, LATEST_API_VERSION } from "@shopify/shopify-api";
+import { BillingInterval } from "@shopify/shopify-api";
 import { shopifyApp } from "@shopify/shopify-app-express";
 import { restResources } from "@shopify/shopify-api/rest/admin/2024-10";
 import { PostgreSQLSessionStorage } from "@shopify/shopify-app-session-storage-postgresql";
@@ -17,14 +17,15 @@ const dbHost =
 const dbPort = process.env.DATABASE_PORT || "5432";
 
 const dbName = process.env.DATABASE_NAME || "retailer_locator";
-
+const ssl = process.env.DATABASE_SSL || 'true';
 const DATABASE_URL = `postgres://${encodeURIComponent(
   dbUser
 )}:${encodeURIComponent(
   dbPassword
-)}@${dbHost}:${dbPort}/${dbName}?sslmode=require`;
+)}@${dbHost}:${dbPort}/${dbName}?sslmode=${ssl}`;
 
 console.log("DATABASE_URL CREATED:", DATABASE_URL ? "YES" : "NO");
+console.log("DATABASE_URL",DATABASE_URL)
 
 const sessionStorage = new PostgreSQLSessionStorage(
   DATABASE_URL
@@ -41,7 +42,7 @@ const billingConfig = {
 const shopify = shopifyApp({
   api: {
     restResources,
-    apiVersion: LATEST_API_VERSION,
+    apiVersion: "2024-10",
 
     apiKey: process.env.SHOPIFY_API_KEY,
     apiSecretKey: process.env.SHOPIFY_API_SECRET,
