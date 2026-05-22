@@ -23,8 +23,8 @@ const STATIC_PATH =
     ? `${process.cwd()}/frontend/dist`
     : `${process.cwd()}/frontend/`;
 
-    const app = express();
-    app.use(cors());
+const app = express();
+app.use(cors());
 await initDb();
 app.use(express.json());
 
@@ -40,24 +40,31 @@ app.get(
         return res.status(500).send("No session found");
       }
 
+      console.log("SESSION:", session);
+
       await pool.query(
         `
-        INSERT INTO stores (shop_domain, access_token, is_installed)
+        INSERT INTO stores (
+          shop_domain,
+          access_token,
+          is_installed
+        )
         VALUES ($1, $2, true)
         ON CONFLICT (shop_domain)
         DO UPDATE SET
           access_token = EXCLUDED.access_token,
           is_installed = true
         `,
-        [session.stores, session.accessToken,session.scope]
+        [session.shop, session.accessToken]
       );
 
-      console.log("✅ App installed:", session.stores);
+      console.log("✅ App installed:", session.shop);
 
       return shopify.redirectToShopifyOrAppRoot();
 
     } catch (err) {
-      console.error("Auth error:", err);
+      console.error("❌ Auth error:", err);
+
       res.status(500).send("Auth failed");
     }
   }
@@ -72,8 +79,6 @@ app.post(
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-
-await initDb();
 
 app.use("/app/retailers", shopify.validateAuthenticatedSession(), retailersRoutes);
 app.use("/app/categories", shopify.validateAuthenticatedSession(), categoriesRoutes);

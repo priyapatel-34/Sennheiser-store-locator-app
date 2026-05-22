@@ -22,15 +22,10 @@ const DATABASE_URL = `postgres://${encodeURIComponent(
   dbUser
 )}:${encodeURIComponent(
   dbPassword
-)}@${dbHost}:${dbPort}/${dbName}?sslmode=require`;
+)}@${dbHost}:${dbPort}/${dbName}`;
 
 const sessionStorage = new PostgreSQLSessionStorage(
-  DATABASE_URL,
-  {
-    ssl: {
-      rejectUnauthorized: false,
-    },
-  }
+  DATABASE_URL
 );
 
 const billingConfig = {
