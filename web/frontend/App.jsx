@@ -5,7 +5,6 @@ import {
 } from "react-router-dom";
 
 import { Frame, Navigation } from "@shopify/polaris";
-import { Provider as AppBridgeProvider } from "@shopify/app-bridge-react";
 
 import Routes from "./Routes";
 import { QueryProvider, PolarisProvider } from "./components";
@@ -52,21 +51,13 @@ export default function App() {
     { eager: true }
   );
 
-  const config = {
-    apiKey: import.meta.env.VITE_SHOPIFY_API_KEY,
-    host: new URLSearchParams(window.location.search).get("host"),
-    forceRedirect: true,
-  };
-
   return (
     <PolarisProvider>
-      <AppBridgeProvider config={config}>
-        <BrowserRouter>
-          <QueryProvider>
-            <AppContent pages={pages} />
-          </QueryProvider>
-        </BrowserRouter>
-      </AppBridgeProvider>
+      <BrowserRouter>
+        <QueryProvider>
+          <AppContent pages={pages} />
+        </QueryProvider>
+      </BrowserRouter>
     </PolarisProvider>
   );
 }
