@@ -79,13 +79,7 @@ app.use("/settings", storeSettingsRoutes);
 app.use(shopify.cspHeaders());
 app.use(serveStatic(STATIC_PATH, { index: false }));
 
-app.use("/*", (req, res, next) => {
-  if (!req.query.shop) {
-    return res.status(400).send("Missing shop parameter");
-  }
-
-  return shopify.ensureInstalledOnShop()(req, res, next);
-});
+app.use("/app/*", shopify.ensureInstalledOnShop());
 
 app.use("/*", (req, res) => {
   return res
