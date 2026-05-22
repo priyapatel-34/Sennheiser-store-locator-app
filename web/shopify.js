@@ -17,19 +17,18 @@ const dbHost =
 const dbPort = process.env.DATABASE_PORT || "5432";
 
 const dbName = process.env.DATABASE_NAME || "retailer_locator";
-const ssl = process.env.DATABASE_SSL || 'require';
 const DATABASE_URL = `postgres://${encodeURIComponent(
   dbUser
 )}:${encodeURIComponent(
   dbPassword
-)}@${dbHost}:${dbPort}/${dbName}?sslmode=${ssl}`;
+)}@${dbHost}:${dbPort}/${dbName}`;
 
-console.log("DATABASE_URL CREATED:", DATABASE_URL ? "YES" : "NO");
-console.log("DATABASE_URL",DATABASE_URL)
-
-const sessionStorage = new PostgreSQLSessionStorage(
-  DATABASE_URL
-);
+const sessionStorage = new PostgreSQLSessionStorage({
+  connectionString: DATABASE_URL,
+  ssl: {
+    rejectUnauthorized: false,
+  },
+});
 
 const billingConfig = {
   "My Shopify One-Time Charge": {
