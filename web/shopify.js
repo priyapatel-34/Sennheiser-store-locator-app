@@ -22,8 +22,8 @@ const DATABASE_URL = `postgres://${encodeURIComponent(
   dbUser
 )}:${encodeURIComponent(
   dbPassword
-)}@${dbHost}:${dbPort}/${dbName}`;
-
+)}@${dbHost}:${dbPort}/${dbName}?sslmode=require`;
+console.log("DATABASE_URL",DATABASE_URL)
 const sessionStorage = new PostgreSQLSessionStorage(
   DATABASE_URL
 );
