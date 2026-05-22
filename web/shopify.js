@@ -24,9 +24,7 @@ const sessionStorage = new PostgreSQLSessionStorage(
   DATABASE_URL,
   {
     connectionOptions: {
-      ssl: {
-        rejectUnauthorized: false,
-      },
+      ssl: true
     },
   }
 );
