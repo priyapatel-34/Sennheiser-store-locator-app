@@ -34,13 +34,18 @@ app.get(
   shopify.auth.callback(),
   async (req, res) => {
     try {
+      console.log("CALLBACK HIT");
+
       const session = res.locals.shopify.session;
 
+      console.log("SESSION:", session);
+
       if (!session) {
+        console.log("NO SESSION");
         return res.status(500).send("No session found");
       }
 
-      console.log("SESSION:", session);
+      console.log("INSERTING STORE");
 
       await pool.query(
         `
@@ -58,13 +63,12 @@ app.get(
         [session.shop, session.accessToken]
       );
 
-      console.log("✅ App installed:", session.shop);
+      console.log("STORE SAVED");
 
       return shopify.redirectToShopifyOrAppRoot();
 
     } catch (err) {
-      console.error("❌ Auth error:", err);
-
+      console.error("AUTH ERROR:", err);
       res.status(500).send("Auth failed");
     }
   }

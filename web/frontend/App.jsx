@@ -15,11 +15,11 @@ function AppContent({ pages }) {
             items={[
               {
                 label: "Retailers",
-                onClick: () => navigate("/Retailers"),
+                onClick: () => navigate("/retailers"),
               },
               {
                 label: "Categories",
-                onClick: () => navigate("/Categories"),
+                onClick: () => navigate("/categories"),
               },
             ]}
           />
@@ -38,7 +38,7 @@ export default function App() {
 
   return (
     <PolarisProvider>
-      <BrowserRouter>
+      <BrowserRouter basename={window.location.pathname}>
         <QueryProvider>
           <AppContent pages={pages} />
         </QueryProvider>
