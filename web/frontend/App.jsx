@@ -38,7 +38,7 @@ export default function App() {
 
   return (
     <PolarisProvider>
-      <BrowserRouter basename={window.location.pathname}>
+      <BrowserRouter>
         <QueryProvider>
           <AppContent pages={pages} />
         </QueryProvider>

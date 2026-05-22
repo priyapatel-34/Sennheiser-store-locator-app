@@ -39,14 +39,14 @@ app.get(
       if (!session) return res.status(500).send("No session found");
 
       await pool.query(
-        `INSERT INTO stores (shop_domain, access_token, is_installed)
-         VALUES ($1, $2, true)
+        `INSERT INTO stores (shop_domain, is_installed)
+         VALUES ($1, true)
          ON CONFLICT (shop_domain)
-         DO UPDATE SET access_token = EXCLUDED.access_token, is_installed = true`,
-        [session.shop, session.accessToken]
+         DO UPDATE SET is_installed = true`,
+        [session.shop]
       );
 
-      return shopify.redirectToShopifyOrAppRoot()(req, res, next); // ← call it correctly
+      return shopify.redirectToShopifyOrAppRoot()(req, res, next);
     } catch (err) {
       console.error("AUTH ERROR:", err);
       res.status(500).send("Auth failed");
