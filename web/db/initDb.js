@@ -21,7 +21,6 @@ export async function initDb() {
       CREATE TABLE IF NOT EXISTS stores (
         id SERIAL PRIMARY KEY,
         shop_domain VARCHAR(255) UNIQUE NOT NULL,
-         access_token TEXT,
         country_id INT REFERENCES countries(id),
         is_installed BOOLEAN DEFAULT TRUE,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP

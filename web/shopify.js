@@ -21,7 +21,9 @@ const sessionStorage = new PostgreSQLSessionStorage(
   DATABASE_URL,
   {
     connectionOptions: {
-      rejectUnauthorized: false
+      ssl: {
+        rejectUnauthorized: false,
+      },
     }
   }
 );
@@ -46,8 +48,6 @@ const shopify = shopifyApp({
       /^https?:\/\//,
       ""
     ),
-
-    hostScheme: "https",
 
     isEmbeddedApp: true,
 

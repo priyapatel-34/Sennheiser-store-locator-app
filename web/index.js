@@ -29,60 +29,87 @@ const STATIC_PATH =
       ? join(__dirname, "frontend", "dist")
       : join(__dirname, "frontend");
 
+      // Auth
 app.get(shopify.config.auth.path, shopify.auth.begin());
+
 app.get(
   shopify.config.auth.callbackPath,
   shopify.auth.callback(),
   async (req, res, next) => {
     try {
       const session = res.locals.shopify.session;
-      if (!session) return res.status(500).send("No session found");
+
+      console.log("SESSION:", session);
 
       await pool.query(
-        `INSERT INTO stores (shop_domain, is_installed)
-         VALUES ($1, true)
-         ON CONFLICT (shop_domain)
-         DO UPDATE SET is_installed = true`,
+        `
+        INSERT INTO stores (shop_domain, is_installed)
+        VALUES ($1, true)
+        ON CONFLICT (shop_domain)
+        DO UPDATE SET is_installed = true
+        `,
         [session.shop]
       );
 
       return shopify.redirectToShopifyOrAppRoot()(req, res, next);
     } catch (err) {
-      console.error("AUTH ERROR:", err);
-      res.status(500).send("Auth failed");
+      console.error("AUTH CALLBACK ERROR:", err);
+      return res.status(500).send(err.message);
     }
   }
 );
 
-// 2. Webhooks (must be before json parser)
+// Webhooks
 app.post(
   shopify.config.webhooks.path,
   shopify.processWebhooks({ webhookHandlers: PrivacyWebhookHandlers })
 );
 
-// 3. Body parsers
+// Middleware
+app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-app.use(cors());
 
-// 4. Authenticated API/app routes
-app.use("/app/retailers", shopify.validateAuthenticatedSession(), retailersRoutes);
-app.use("/app/categories", shopify.validateAuthenticatedSession(), categoriesRoutes);
-app.use("/app/settings", shopify.validateAuthenticatedSession(), settingsRoutes);
-app.use("/app/countries", shopify.validateAuthenticatedSession(), countriesRoutes);
+// ENSURE INSTALLED FIRST
+app.use("/app/*", shopify.ensureInstalledOnShop());
 
+// Authenticated APIs
+app.use(
+  "/app/retailers",
+  shopify.validateAuthenticatedSession(),
+  retailersRoutes
+);
+
+app.use(
+  "/app/categories",
+  shopify.validateAuthenticatedSession(),
+  categoriesRoutes
+);
+
+app.use(
+  "/app/settings",
+  shopify.validateAuthenticatedSession(),
+  settingsRoutes
+);
+
+app.use(
+  "/app/countries",
+  shopify.validateAuthenticatedSession(),
+  countriesRoutes
+);
+
+// Public routes
 app.use("/retailers", storeRetailersRoutes);
 app.use("/categories", storeCategoriesRoutes);
 app.use("/settings", storeSettingsRoutes);
 
-// 5. Static + catch-all LAST
+// Static
 app.use(shopify.cspHeaders());
 app.use(serveStatic(STATIC_PATH, { index: false }));
 
-app.use("/app/*", shopify.ensureInstalledOnShop());
-
+// Catch all
 app.use("/*", (req, res) => {
-  return res
+  res
     .status(200)
     .set("Content-Type", "text/html")
     .send(
@@ -94,6 +121,7 @@ app.use("/*", (req, res) => {
         )
     );
 });
+
 app.listen(PORT, () => {
   console.log(`🚀 Server running on port ${PORT}`);
 });
