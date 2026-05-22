@@ -18,7 +18,7 @@ const dbPort = process.env.DATABASE_PORT || "5432";
 
 const dbName = process.env.DATABASE_NAME || "retailer_locator";
 
-const DATABASE_URL = `postgres://${dbUser}:${encodeURIComponent(dbPassword)}@${dbHost}:${dbPort}/${dbName}?sslmode=require`;
+const DATABASE_URL = `postgres://storeloc_app_user:Djh87655!ko98#345@dechb-storelocator-psql-prd.postgres.database.azure.com:5432/storelocatordb?sslmode=require`;
 console.log("DATABASE_URL",DATABASE_URL)
 const sessionStorage = new PostgreSQLSessionStorage(
   DATABASE_URL,
