@@ -13,19 +13,16 @@ const dbPassword = process.env.DATABASE_PASSWORD;
 const dbHost =
   process.env.DATABASE_HOST ||
   "dechb-storelocator-psql-prd.postgres.database.azure.com";
-
 const dbPort = process.env.DATABASE_PORT || "5432";
-
 const dbName = process.env.DATABASE_NAME || "retailer_locator";
+const DATABASE_URL = `postgres://${dbUser}:${encodeURIComponent(dbPassword)}@${dbHost}:${dbPort}/${dbName}?sslmode=require`;
 
-// const DATABASE_URL = `postgres://storeloc_app_user:Djh87655!ko98#345@dechb-storelocator-psql-prd.postgres.database.azure.com:5432/storelocatordb?sslmode=require`;
-const DATABASE_URL = process.env.DATABASE_URL;
 const sessionStorage = new PostgreSQLSessionStorage(
   DATABASE_URL,
   {
     connectionOptions: {
-        rejectUnauthorized: false  // required for Azure PostgreSQL
-      }
+      rejectUnauthorized: false
+    }
   }
 );
 
