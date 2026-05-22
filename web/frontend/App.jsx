@@ -1,5 +1,12 @@
-import { BrowserRouter, useLocation , useNavigate } from "react-router-dom";
+import {
+  BrowserRouter,
+  useLocation,
+  useNavigate,
+} from "react-router-dom";
+
 import { Frame, Navigation } from "@shopify/polaris";
+import { Provider as AppBridgeProvider } from "@shopify/app-bridge-react";
+
 import Routes from "./Routes";
 import { QueryProvider, PolarisProvider } from "./components";
 
@@ -15,11 +22,19 @@ function AppContent({ pages }) {
             items={[
               {
                 label: "Retailers",
-                onClick: () => navigate("/retailers"),
+                onClick: () =>
+                  navigate({
+                    pathname: "/retailers",
+                    search: location.search,
+                  }),
               },
               {
                 label: "Categories",
-                onClick: () => navigate("/categories"),
+                onClick: () =>
+                  navigate({
+                    pathname: "/categories",
+                    search: location.search,
+                  }),
               },
             ]}
           />
@@ -30,19 +45,28 @@ function AppContent({ pages }) {
     </Frame>
   );
 }
+
 export default function App() {
   const pages = import.meta.glob(
     "./pages/**/!(*.test.[jt]sx)*.([jt]sx)",
     { eager: true }
   );
 
+  const config = {
+    apiKey: import.meta.env.VITE_SHOPIFY_API_KEY,
+    host: new URLSearchParams(window.location.search).get("host"),
+    forceRedirect: true,
+  };
+
   return (
     <PolarisProvider>
-      <BrowserRouter>
-        <QueryProvider>
-          <AppContent pages={pages} />
-        </QueryProvider>
-      </BrowserRouter>
+      <AppBridgeProvider config={config}>
+        <BrowserRouter>
+          <QueryProvider>
+            <AppContent pages={pages} />
+          </QueryProvider>
+        </BrowserRouter>
+      </AppBridgeProvider>
     </PolarisProvider>
   );
 }

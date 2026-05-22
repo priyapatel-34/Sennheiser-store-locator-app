@@ -79,13 +79,25 @@ app.use("/settings", storeSettingsRoutes);
 app.use(shopify.cspHeaders());
 app.use(serveStatic(STATIC_PATH, { index: false }));
 
-app.use("/*", shopify.ensureInstalledOnShop(), (req, res) => {
-  return res.status(200)
+app.use("/*", (req, res, next) => {
+  if (!req.query.shop) {
+    return res.status(400).send("Missing shop parameter");
+  }
+
+  return shopify.ensureInstalledOnShop()(req, res, next);
+});
+
+app.use("/*", (req, res) => {
+  return res
+    .status(200)
     .set("Content-Type", "text/html")
     .send(
       readFileSync(join(STATIC_PATH, "index.html"))
         .toString()
-        .replace("%VITE_SHOPIFY_API_KEY%", process.env.SHOPIFY_API_KEY || "")
+        .replace(
+          "%VITE_SHOPIFY_API_KEY%",
+          process.env.SHOPIFY_API_KEY || ""
+        )
     );
 });
 app.listen(PORT, () => {
