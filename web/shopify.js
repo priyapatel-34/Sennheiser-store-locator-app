@@ -17,18 +17,21 @@ const dbHost =
 const dbPort = process.env.DATABASE_PORT || "5432";
 
 const dbName = process.env.DATABASE_NAME || "retailer_locator";
+
 const DATABASE_URL = `postgres://${encodeURIComponent(
   dbUser
 )}:${encodeURIComponent(
   dbPassword
-)}@${dbHost}:${dbPort}/${dbName}`;
+)}@${dbHost}:${dbPort}/${dbName}?sslmode=require`;
 
-const sessionStorage = new PostgreSQLSessionStorage({
-  connectionString: DATABASE_URL,
-  ssl: {
-    rejectUnauthorized: false,
-  },
-});
+const sessionStorage = new PostgreSQLSessionStorage(
+  DATABASE_URL,
+  {
+    ssl: {
+      rejectUnauthorized: false,
+    },
+  }
+);
 
 const billingConfig = {
   "My Shopify One-Time Charge": {
