@@ -18,14 +18,17 @@ const dbPort = process.env.DATABASE_PORT || "5432";
 
 const dbName = process.env.DATABASE_NAME || "retailer_locator";
 
-const DATABASE_URL = `postgres://${encodeURIComponent(
-  dbUser
-)}:${encodeURIComponent(
-  dbPassword
-)}@${dbHost}:${dbPort}/${dbName}?sslmode=require`;
+const DATABASE_URL = `postgres://${dbUser}:${encodeURIComponent(dbPassword)}@${dbHost}:${dbPort}/${dbName}?sslmode=require`;
 console.log("DATABASE_URL",DATABASE_URL)
 const sessionStorage = new PostgreSQLSessionStorage(
-  DATABASE_URL
+  DATABASE_URL,
+  {
+    connectionOptions: {
+      ssl: {
+        rejectUnauthorized: false,
+      },
+    },
+  }
 );
 
 const billingConfig = {
