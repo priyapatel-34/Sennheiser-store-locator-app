@@ -1,7 +1,7 @@
 # Learn more about configuring your app at https://shopify.dev/docs/apps/tools/cli/configuration
 
-client_id = "7c2a637612539eb2484e0c38b82e6797"
-name = "sennheiser-store-locator-app"
+client_id = "c39302ee40b79503da20ec8b65939a22"
+name = "Sennheiser store locator app"
 application_url = "https://dechbstorelocatorprd-b2dccxb2bffgf4fa.westeurope-01.azurewebsites.net"
 embedded = true
 
@@ -9,11 +9,13 @@ embedded = true
 automatically_update_urls_on_dev = true
 
 [webhooks]
-api_version = "2024-10"
+api_version = "2026-07"
 
 [access_scopes]
 # Learn more at https://shopify.dev/docs/apps/tools/cli/configuration#access_scopes
 scopes = "write_products"
 
 [auth]
-redirect_urls = [ "https://dechbstorelocatorprd-b2dccxb2bffgf4fa.westeurope-01.azurewebsites.net/api/auth/callback" ]
+redirect_urls = [
+  "https://dechbstorelocatorprd-b2dccxb2bffgf4fa.westeurope-01.azurewebsites.net/api/auth/callback"
+]
