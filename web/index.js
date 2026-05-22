@@ -20,8 +20,8 @@ const PORT = parseInt(process.env.PORT || "3000", 10);
 
 const STATIC_PATH =
   process.env.NODE_ENV === "production"
-    ? `${process.cwd()}/frontend/dist`
-    : `${process.cwd()}/frontend/`;
+    ? join(process.cwd(), "web/frontend/dist")
+    : join(process.cwd(), "web/frontend");
 
 const app = express();
 app.use(cors());
