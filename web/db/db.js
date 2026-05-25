@@ -10,7 +10,7 @@ const __dirname = path.dirname(__filename);
 
 // Load .env
 if (process.env.NODE_ENV !== "production") {
-  dotenv.config({ path: path.resolve(__dirname, "../../.env") });
+  dotenv.config({ path: path.resolve(__dirname, "../.env") });
 }
 
 // Pool
@@ -19,7 +19,8 @@ export const pool = new Pool({
   user: process.env.DATABASE_USER,
   password: process.env.DATABASE_PASSWORD,
   database: process.env.DATABASE_NAME,
-  port: process.env.DATABASE_PORT || 5432,
+  port: process.env.DATABASE_PORT,
+  connectionLimit: 10,
   ssl: {
     rejectUnauthorized: false 
   }
