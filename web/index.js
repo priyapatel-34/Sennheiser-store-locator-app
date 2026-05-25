@@ -27,11 +27,11 @@ const PORT = parseInt(process.env.PORT || "3000", 10);
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 const STATIC_PATH =
-    process.env.NODE_ENV === "production"
-      ? join(__dirname, "frontend", "dist")
-      : join(__dirname, "frontend");
+  process.env.NODE_ENV === "production"
+    ? join(__dirname, "frontend", "dist")
+    : join(__dirname, "frontend");
 
-      // Auth
+// Auth
 app.get(shopify.config.auth.path, shopify.auth.begin());
 
 app.get(
@@ -59,31 +59,26 @@ app.use("/app/*", shopify.ensureInstalledOnShop());
 // Authenticated APIs
 app.use(
   "/app/retailers",
-  shopify.validateAuthenticatedSession(),
   retailersRoutes
 );
 
 app.use(
   "/app/categories",
-  shopify.validateAuthenticatedSession(),
   categoriesRoutes
 );
 
 app.use(
   "/app/settings",
-  shopify.validateAuthenticatedSession(),
   settingsRoutes
 );
 
 app.use(
   "/app/countries",
-  shopify.validateAuthenticatedSession(),
   countriesRoutes
 );
 
 app.use(
   "/app/import",
-  shopify.validateAuthenticatedSession(),
   importRetailersCSV
 );
 
