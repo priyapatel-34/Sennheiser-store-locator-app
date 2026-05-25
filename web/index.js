@@ -19,6 +19,7 @@ import { dirname } from "path";
 import { fileURLToPath } from "url";
 
 const app = express();
+app.set("trust proxy", 1);
 await initDb();
 
 const PORT = parseInt(process.env.PORT || "3000", 10);
@@ -34,27 +35,71 @@ app.get(shopify.config.auth.path, shopify.auth.begin());
 
 app.get(
   shopify.config.auth.callbackPath,
-  shopify.auth.callback(),
   async (req, res, next) => {
+    console.log("===== CALLBACK START =====");
+
     try {
-      const session = res.locals.shopify.session;
+      await shopify.auth.callback()(req, res, async () => {
+        try {
+          console.log("AUTH CALLBACK SUCCESS");
 
-      console.log("SESSION:", session);
+          const session = res.locals.shopify.session;
 
-      await pool.query(
-        `
-        INSERT INTO stores (shop_domain, is_installed)
-        VALUES ($1, true)
-        ON CONFLICT (shop_domain)
-        DO UPDATE SET is_installed = true
-        `,
-        [session.shop]
+          console.log("SESSION:", session);
+
+          if (!session) {
+            console.log("NO SESSION FOUND");
+            return res.status(500).send("No session");
+          }
+
+          const result = await pool.query(
+            `
+            INSERT INTO stores (
+              shop_domain,
+              is_installed
+            )
+            VALUES ($1, true)
+
+            ON CONFLICT (shop_domain)
+
+            DO UPDATE SET
+              is_installed = true
+
+            RETURNING *;
+            `,
+            [session.shop]
+          );
+
+          console.log(
+            "STORE INSERTED:",
+            result.rows[0]
+          );
+
+          return shopify.redirectToShopifyOrAppRoot()(
+            req,
+            res,
+            next
+          );
+        } catch (dbErr) {
+          console.error(
+            "DATABASE INSERT ERROR:",
+            dbErr
+          );
+
+          return res
+            .status(500)
+            .send(dbErr.message);
+        }
+      });
+    } catch (authErr) {
+      console.error(
+        "SHOPIFY AUTH ERROR:",
+        authErr
       );
 
-      return shopify.redirectToShopifyOrAppRoot()(req, res, next);
-    } catch (err) {
-      console.error("AUTH CALLBACK ERROR:", err);
-      return res.status(500).send(err.message);
+      return res
+        .status(500)
+        .send(authErr.message);
     }
   }
 );
