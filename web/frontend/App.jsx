@@ -1,10 +1,12 @@
 import { BrowserRouter, useLocation } from "react-router-dom";
 import { Frame, Navigation } from "@shopify/polaris";
+import { useAppBridge } from "@shopify/app-bridge-react";
 import Routes from "./Routes";
 import { QueryProvider, PolarisProvider } from "./components";
 
 function AppContent({ pages }) {
   const location = useLocation();
+  const shopify = useAppBridge();
 
   return (
     <Frame
@@ -14,12 +16,12 @@ function AppContent({ pages }) {
             items={[
               {
                 label: "Retailers",
-                url: "/retailers",
+                onClick: () => shopify.navigate("/retailers"),
                 selected: location.pathname === "/retailers",
               },
               {
                 label: "Categories",
-                url: "/categories",
+                onClick: () => shopify.navigate("/categories"),
                 selected: location.pathname === "/categories",
               },
             ]}
