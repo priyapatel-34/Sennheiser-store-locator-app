@@ -16,12 +16,22 @@ function AppContent({ pages }) {
             items={[
               {
                 label: "Retailers",
-                onClick: () => shopify.navigate("/retailers"),
+                onClick: () =>
+                  shopify.dispatch({
+                    type: "APP::NAVIGATION::REDIRECT::APP",
+                    payload: { path: "/retailers" },
+                    group: "Navigation",
+                  }),
                 selected: location.pathname === "/retailers",
               },
               {
                 label: "Categories",
-                onClick: () => shopify.navigate("/categories"),
+                onClick: () =>
+                  shopify.dispatch({
+                    type: "APP::NAVIGATION::REDIRECT::APP",
+                    payload: { path: "/categories" },
+                    group: "Navigation",
+                  }),
                 selected: location.pathname === "/categories",
               },
             ]}
@@ -50,7 +60,6 @@ export default function App() {
     </PolarisProvider>
   );
 }
- 
 // import { BrowserRouter, useLocation, useNavigate } from "react-router-dom";
 // import { Frame, Navigation } from "@shopify/polaris";
 // import Routes from "./Routes";
