@@ -35,73 +35,8 @@ app.get(shopify.config.auth.path, shopify.auth.begin());
 
 app.get(
   shopify.config.auth.callbackPath,
-  async (req, res, next) => {
-    console.log("===== CALLBACK START =====");
-
-    try {
-      await shopify.auth.callback()(req, res, async () => {
-        try {
-          console.log("AUTH CALLBACK SUCCESS");
-
-          const session = res.locals.shopify.session;
-
-          console.log("SESSION:", session);
-
-          if (!session) {
-            console.log("NO SESSION FOUND");
-            return res.status(500).send("No session");
-          }
-
-          const result = await pool.query(
-            `
-            INSERT INTO stores (
-              shop_domain,
-              is_installed
-            )
-            VALUES ($1, true)
-
-            ON CONFLICT (shop_domain)
-
-            DO UPDATE SET
-              is_installed = true
-
-            RETURNING *;
-            `,
-            [session.shop]
-          );
-
-          console.log(
-            "STORE INSERTED:",
-            result.rows[0]
-          );
-
-          return shopify.redirectToShopifyOrAppRoot()(
-            req,
-            res,
-            next
-          );
-        } catch (dbErr) {
-          console.error(
-            "DATABASE INSERT ERROR:",
-            dbErr
-          );
-
-          return res
-            .status(500)
-            .send(dbErr.message);
-        }
-      });
-    } catch (authErr) {
-      console.error(
-        "SHOPIFY AUTH ERROR:",
-        authErr
-      );
-
-      return res
-        .status(500)
-        .send(authErr.message);
-    }
-  }
+  shopify.auth.callback(),
+  shopify.redirectToShopifyOrAppRoot()
 );
 
 // Webhooks

@@ -1,6 +1,6 @@
 import dotenv from "dotenv";
 dotenv.config();
-
+import { pool } from "./db/db.js";
 import { BillingInterval } from "@shopify/shopify-api";
 import { shopifyApp } from "@shopify/shopify-app-express";
 import { restResources } from "@shopify/shopify-api/rest/admin/2024-10";
@@ -50,27 +50,50 @@ const shopify = shopifyApp({
     ),
 
     isEmbeddedApp: true,
-
-    future: {
-      customerAddressDefaultFix: true,
-      lineItemBilling: true,
-      unstable_managedPricingSupport: true,
-    },
-
-    billing: undefined,
   },
 
   auth: {
     path: "/api/auth",
     callbackPath: "/api/auth/callback",
-  },
 
-  webhooks: {
-    path: "/api/webhooks",
-  },
+    afterAuth: async ({ session }) => {
+      try {
+        console.log("AFTER AUTH HIT");
 
-  sessionStorage,
+        console.log("SHOP:", session.shop);
+
+        const result = await pool.query(
+          `
+          INSERT INTO stores (
+            shop_domain,
+            is_installed
+          )
+          VALUES ($1, true)
+
+          ON CONFLICT (shop_domain)
+
+          DO UPDATE SET
+            is_installed = true
+
+          RETURNING *;
+          `,
+          [session.shop]
+        );
+
+        console.log(
+          "STORE SAVED:",
+          result.rows[0]
+        );
+      } catch (err) {
+        console.error(
+          "AFTER AUTH DB ERROR:",
+          err
+        );
+      }
+    },
+  },
 });
+
 
 export default shopify;
 
