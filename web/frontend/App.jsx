@@ -1,4 +1,3 @@
-import { useMemo } from "react";
 import { BrowserRouter, useLocation, useNavigate } from "react-router-dom";
 import { Frame, Navigation } from "@shopify/polaris";
 import Routes from "./Routes";
@@ -16,14 +15,12 @@ function AppContent({ pages }) {
             items={[
               {
                 label: "Retailers",
-                url: "/retailers",
-                onClick: () => navigate("/retailers"),
+                onClick: () => navigate("/retailers"),  
                 selected: location.pathname === "/retailers",
               },
               {
                 label: "Categories",
-                url: "/categories",
-                onClick: () => navigate("/categories"),
+                onClick: () => navigate("/categories"), 
                 selected: location.pathname === "/categories",
               },
             ]}
