@@ -41,8 +41,10 @@ app.get(
 
 // Webhooks
 app.post(
-  shopify.config.webhooks.path,
-  shopify.processWebhooks({ webhookHandlers: PrivacyWebhookHandlers })
+  "/api/webhooks",
+  shopify.processWebhooks({
+    webhookHandlers: PrivacyWebhookHandlers,
+  })
 );
 
 // Middleware
