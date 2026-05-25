@@ -17,6 +17,7 @@ import storeCategoriesRoutes from "./routes/storefront/categories.routes.js";
 import storeSettingsRoutes from "./routes/storefront/settings.routes.js";
 import { dirname } from "path";
 import { fileURLToPath } from "url";
+import { importRetailersCSV } from "./controller/admin/retailers.controller.js";
 
 const app = express();
 app.set("trust proxy", 1);
@@ -78,6 +79,12 @@ app.use(
   "/app/countries",
   shopify.validateAuthenticatedSession(),
   countriesRoutes
+);
+
+app.use(
+  "/app/import",
+  shopify.validateAuthenticatedSession(),
+  importRetailersCSV
 );
 
 // Public routes

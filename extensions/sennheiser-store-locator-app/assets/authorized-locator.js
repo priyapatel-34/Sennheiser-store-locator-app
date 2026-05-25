@@ -32,7 +32,7 @@ async function bootstrapGoogleMaps() {
 
         const script = Object.assign(document.createElement('script'), {
             id: 'googleMapsScript',
-            src: `https://maps.googleapis.com/maps/api/js?key=${GOOGLE_MAPS_API_KEY}&libraries=places,marker&v=weekly`,
+            src: `https://maps.googleapis.com/maps/api/js?key=${GOOGLE_MAPS_API_KEY}&libraries=places,marker&v=weekly&loading=async`,
             async: true,
             defer: true,
             onload: resolve,
