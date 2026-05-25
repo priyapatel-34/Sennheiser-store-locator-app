@@ -1,4 +1,4 @@
-import { BrowserRouter , useLocation , useNavigate } from "react-router-dom";
+import { HashRouter, useLocation, useNavigate } from "react-router-dom";
 import { Frame, Navigation } from "@shopify/polaris";
 import Routes from "./Routes";
 import { QueryProvider, PolarisProvider } from "./components";
@@ -38,11 +38,11 @@ export default function App() {
 
   return (
     <PolarisProvider>
-      <BrowserRouter>
+      <HashRouter>
         <QueryProvider>
           <AppContent pages={pages} />
         </QueryProvider>
-      </BrowserRouter>
+      </HashRouter>
     </PolarisProvider>
   );
 }

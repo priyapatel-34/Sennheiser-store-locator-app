@@ -25,7 +25,6 @@ import {
 import { handleApiResponse } from "../utils/apiHandler";
 import CommonToast from "../components/Toast";
 
-// Polaris v10 compat shims for BlockStack / InlineStack (added in v11)
 const GAP_MAP = { "0": "0px", "100": "4px", "200": "8px", "300": "12px", "400": "16px", "500": "20px", "600": "24px", "800": "32px", "1600": "64px" };
 const gapPx = (g) => GAP_MAP[String(g)] ?? "0px";
 
