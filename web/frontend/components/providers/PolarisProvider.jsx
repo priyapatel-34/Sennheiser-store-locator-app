@@ -7,12 +7,8 @@ function AppBridgeLink({ url, children, external, ...rest }) {
   const handleClick = useCallback(
     (e) => {
       e.preventDefault();
-      if (window.shopify && window.shopify.dispatch) {
-        window.shopify.dispatch({
-          type: "APP::NAVIGATION::REDIRECT::APP",
-          payload: { path: url },
-          group: "Navigation",
-        });
+      if (window.shopify && window.shopify.redirect) {
+        window.shopify.redirect.to({ path: url });
       } else {
         window.open(url);
       }
@@ -46,4 +42,3 @@ export function PolarisProvider({ children }) {
     </AppProvider>
   );
 }
- 

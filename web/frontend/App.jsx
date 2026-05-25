@@ -16,22 +16,14 @@ function AppContent({ pages }) {
             items={[
               {
                 label: "Retailers",
-                onClick: () =>
-                  shopify.dispatch({
-                    type: "APP::NAVIGATION::REDIRECT::APP",
-                    payload: { path: "/retailers" },
-                    group: "Navigation",
-                  }),
+                  onClick: () =>
+                    shopify.redirect.to({ path: "/retailers" }),
                 selected: location.pathname === "/retailers",
               },
               {
                 label: "Categories",
-                onClick: () =>
-                  shopify.dispatch({
-                    type: "APP::NAVIGATION::REDIRECT::APP",
-                    payload: { path: "/categories" },
-                    group: "Navigation",
-                  }),
+                  onClick: () =>
+                    shopify.redirect.to({ path: "/categories" }),
                 selected: location.pathname === "/categories",
               },
             ]}
