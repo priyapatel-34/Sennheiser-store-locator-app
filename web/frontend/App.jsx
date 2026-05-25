@@ -1,6 +1,5 @@
 import { BrowserRouter, useLocation } from "react-router-dom";
 import { Frame, Navigation } from "@shopify/polaris";
-import { AppProvider as ShopifyBridgeProvider } from "@shopify/app-bridge-react";
 import Routes from "./Routes";
 import { QueryProvider, PolarisProvider } from "./components";
 
@@ -39,25 +38,17 @@ export default function App() {
     { eager: true }
   );
 
-  const apiKey = document
-    .querySelector('meta[name="shopify-api-key"]')
-    ?.content?.trim();
-
-  const host = new URLSearchParams(location.search).get("host");
-
   return (
-    <ShopifyBridgeProvider apiKey={apiKey} host={host}>
-      <PolarisProvider>
-        <BrowserRouter>
-          <QueryProvider>
-            <AppContent pages={pages} />
-          </QueryProvider>
-        </BrowserRouter>
-      </PolarisProvider>
-    </ShopifyBridgeProvider>
+    <PolarisProvider>
+      <BrowserRouter>
+        <QueryProvider>
+          <AppContent pages={pages} />
+        </QueryProvider>
+      </BrowserRouter>
+    </PolarisProvider>
   );
 }
-
+ 
 // import { BrowserRouter, useLocation, useNavigate } from "react-router-dom";
 // import { Frame, Navigation } from "@shopify/polaris";
 // import Routes from "./Routes";
