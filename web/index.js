@@ -89,9 +89,9 @@ app.use(
 app.use("/app", shopify.ensureInstalledOnShop());
 
 // Public routes
-app.use("/retailers", storeRetailersRoutes);
-app.use("/categories", storeCategoriesRoutes);
-app.use("/settings", storeSettingsRoutes);
+app.use("/api/store/retailers", storeRetailersRoutes);
+app.use("/api/store/categories", storeCategoriesRoutes);
+app.use("/api/store/settings", storeSettingsRoutes);
 
 // Static
 app.use(shopify.cspHeaders());
