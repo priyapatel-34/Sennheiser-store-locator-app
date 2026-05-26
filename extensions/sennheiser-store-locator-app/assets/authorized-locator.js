@@ -597,7 +597,7 @@ async function loadRetailers(params = {}) {
             if (params[k]) query.append(k, params[k]);
         });
 
-        const url = `${window.RETAILER_API_URL || ''}/retailers?shopop=sennindia.myshopify.com&${query}`;
+        const url = `${window.RETAILER_API_URL || ''}/retailers?shop=sennindia.myshopify.com&${query}`;
         const result = await fetch(url).then(r => r.json());
 
         if (result.success && result.data.length === 0 && result.fallback_location) {
@@ -625,7 +625,7 @@ async function loadRetailers(params = {}) {
 
 async function loadCategories() {
     try {
-        const url = `${window.RETAILER_API_URL || ''}/categories?shopop=sennindia.myshopify.com`;
+        const url = `${window.RETAILER_API_URL || ''}/categories?shop=sennindia.myshopify.com`;
         const result = await fetch(url).then(r => r.json());
         if (result.success) renderCategories(result.data);
         else showToast('Unable to load categories', 'error');
@@ -636,7 +636,7 @@ async function loadCategories() {
 
 async function loadFilterSettings() {
     try {
-        const url = `${window.RETAILER_API_URL || ''}/settings?shopop=sennindia.myshopify.com`;
+        const url = `${window.RETAILER_API_URL || ''}/settings?shop=sennindia.myshopify.com`;
         const result = await fetch(url).then(r => r.json());
         if (result.success && result.data.length > 0) {
             document.querySelector('.right-wrap')?.classList.toggle('no-filters', !result.data[0].filter_enabled);
@@ -912,7 +912,7 @@ function setupLocationSearch() {
 
 async function fetchSuggestions(search) {
     try {
-        const url = `${window.RETAILER_API_URL || ''}/retailers?shopop=sennindia.myshopify.com&search=${encodeURIComponent(search)}`;
+        const url = `${window.RETAILER_API_URL || ''}/retailers?shop=sennindia.myshopify.com&search=${encodeURIComponent(search)}`;
         const result = await fetch(url).then(r => r.json());
         if (!result.success) showToast('Unable to fetch suggestions', 'error');
         return result.success ? (result.data || []) : [];
