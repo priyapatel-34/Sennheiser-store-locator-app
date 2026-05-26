@@ -54,9 +54,6 @@ app.get(
   shopify.redirectToShopifyOrAppRoot()
 );
 
-// ENSURE INSTALLED FIRST
-app.use("/app", shopify.ensureInstalledOnShop());
-
 // Validate authenticated session for APIs
 app.use(
   "/app/api",
@@ -87,6 +84,9 @@ app.use(
   shopify.validateAuthenticatedSession(),
   countriesRoutes
 );
+
+// ENSURE INSTALLED FIRST
+app.use("/app", shopify.ensureInstalledOnShop());
 
 // Public routes
 app.use("/retailers", storeRetailersRoutes);
