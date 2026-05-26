@@ -367,7 +367,7 @@ const ImportCSVModal = ({ open, onClose, onSuccess }) => {
     try {
       const formData = new FormData();
       formData.append("file", file);
-      const res = await fetch("/app/retailers/import", { method: "POST", body: formData });
+      const res = await fetch("/app/api/retailers/import", { method: "POST", body: formData });
       const data = await res.json();
       if (!res.ok) { setResult({ apiError: data.error || `Server error: ${res.status}` }); return; }
       setResult(data);
@@ -568,7 +568,7 @@ const RetailersManager = () => {
     try {
       const params = new URLSearchParams();
       if (searchValue.trim()) params.append("search", searchValue);
-      const res = await fetch(`/app/retailers?${params}`);
+      const res = await fetch(`/app/api/retailers?${params}`);
       const data = await handleApiResponse(res, showToast);
       if (data) setRetailers(data.data);
     } catch {
@@ -579,13 +579,13 @@ const RetailersManager = () => {
     }
   }, [searchValue, showToast]);
 
-  useEffect(() => { fetchData("/app/categories", setAllCategories, "Failed to fetch categories"); }, [fetchData]);
-  useEffect(() => { fetchData("/app/countries", setCountries, "Failed to fetch countries"); }, [fetchData]);
+  useEffect(() => { fetchData("/app/api/categories", setAllCategories, "Failed to fetch categories"); }, [fetchData]);
+  useEffect(() => { fetchData("/app/api/countries", setCountries, "Failed to fetch countries"); }, [fetchData]);
 
   useEffect(() => {
     (async () => {
       try {
-        const res = await fetch("/app/settings");
+        const res = await fetch("/app/api/settings");
         const data = await handleApiResponse(res, showToast);
         if (!data) return;
         setFilterEnabled(data.data?.filter_enabled ?? false);
@@ -608,7 +608,7 @@ const RetailersManager = () => {
   const updateSetting = useCallback(async (filterVal, globalVal, successMsg) => {
     setIsUpdatingSettings(true);
     try {
-      const res = await fetch("/app/settings", {
+      const res = await fetch("/app/api/settings", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ filter_enabled: filterVal, show_global_retailers: globalVal }),
@@ -643,7 +643,7 @@ const RetailersManager = () => {
     if (Object.keys(errors).length) { setNewRetailerErrors(errors); return; }
     setIsCreating(true);
     try {
-      const res = await fetch("/app/retailers", {
+      const res = await fetch("/app/api/retailers", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(newRetailer),
@@ -666,7 +666,7 @@ const RetailersManager = () => {
     if (Object.keys(errors).length) { setEditRetailerErrors(errors); return; }
     setIsSaving(true);
     try {
-      const res = await fetch(`/app/retailers/${editingRetailer.id}`, {
+      const res = await fetch(`/app/api/retailers/${editingRetailer.id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(editingRetailer),
@@ -687,12 +687,12 @@ const RetailersManager = () => {
     setIsDeleting(true);
     try {
       if (deleteContext.type === "single") {
-        const res = await fetch(`/app/retailers/${deleteContext.items[0].id}`, { method: "DELETE" });
+        const res = await fetch(`/app/api/retailers/${deleteContext.items[0].id}`, { method: "DELETE" });
         await handleApiResponse(res, showToast, "Retailer deleted successfully");
       } else {
         await Promise.all(
           deleteContext.items.map((id) =>
-            fetch(`/app/retailers/${id}`, { method: "DELETE" }).then((r) => handleApiResponse(r, showToast))
+            fetch(`/app/api/retailers/${id}`, { method: "DELETE" }).then((r) => handleApiResponse(r, showToast))
           )
         );
       }

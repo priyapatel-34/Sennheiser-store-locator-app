@@ -19,10 +19,12 @@ const dbName =
   process.env.DATABASE_NAME || "retailer_locator";
 
 const DATABASE_URL =
-  `postgres://${dbUser}:${encodeURIComponent(
-    dbPassword
-  )}@${dbHost}:${dbPort}/${dbName}?sslmode=require`;
-
+  `postgres://${dbUser}:${encodeURIComponent(dbPassword)}@${dbHost}:${dbPort}/${dbName}?sslmode=require`;
+  console.log("API KEY:", process.env.SHOPIFY_API_KEY);
+  console.log("API SECRET:", process.env.SHOPIFY_API_SECRET);
+  console.log("HOST:", process.env.HOST);
+  console.log("DATABASE_URL:", process.env.DATABASE_URL);
+  
 const sessionStorage =
   new PostgreSQLSessionStorage(
     DATABASE_URL,

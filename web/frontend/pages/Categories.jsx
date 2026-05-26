@@ -64,7 +64,7 @@ const Categories = () => {
                 params.append("search", searchValue);
             }
             setLoading(true);
-            const res = await fetch(`/app/categories?${params.toString()}`);
+            const res = await fetch(`/app/api/categories?${params.toString()}`);
             const data = await res.json();
 
             if (data.success) setCategories(data.data);
@@ -98,7 +98,7 @@ const Categories = () => {
 
     const createCategory = async (categoryData) => {
         try {
-            const res = await fetch("/app/categories", {
+            const res = await fetch("/app/api/categories", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
@@ -124,7 +124,7 @@ const Categories = () => {
 
     const updateCategory = async (categoryData) => {
         try {
-            const res = await fetch(`/app/categories/${categoryData.id}`, {
+            const res = await fetch(`/app/api/categories/${categoryData.id}`, {
                 method: "PUT",
                 headers: {
                     "Content-Type": "application/json",
@@ -177,11 +177,11 @@ const Categories = () => {
 
             if (deleteContext.type === "single") {
                 const id = Number(deleteContext.items[0].id);
-                await fetch(`/app/categories/${id}`, { method: "DELETE" });
+                await fetch(`/app/api/categories/${id}`, { method: "DELETE" });
             } else {
                 await Promise.all(
                     deleteContext.items.map((id) =>
-                        fetch(`/app/categories/${Number(id)}`, { method: "DELETE" })
+                        fetch(`/app/api/categories/${Number(id)}`, { method: "DELETE" })
                     )
                 );
             }

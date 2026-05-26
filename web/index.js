@@ -31,14 +31,10 @@ const STATIC_PATH =
     ? join(__dirname, "frontend", "dist")
     : join(__dirname, "frontend");
 
-// Auth
-app.get(shopify.config.auth.path, shopify.auth.begin());
 
-app.get(
-  shopify.config.auth.callbackPath,
-  shopify.auth.callback(),
-  shopify.redirectToShopifyOrAppRoot()
-);
+// Middleware
+app.use(cors());
+app.use(express.urlencoded({ extended: true }));
 
 // Webhooks
 app.post(
@@ -48,37 +44,54 @@ app.post(
   })
 );
 
-// Middleware
-app.use(cors());
 app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+
+// Auth
+app.get(shopify.config.auth.path, shopify.auth.begin());
+
+app.get(
+  shopify.config.auth.callbackPath,
+  shopify.auth.callback(),
+  shopify.redirectToShopifyOrAppRoot()
+);
 
 // ENSURE INSTALLED FIRST
-app.use("/app/*", shopify.ensureInstalledOnShop());
+app.use("/app", shopify.ensureInstalledOnShop());
+
+// Validate authenticated session for APIs
+app.use(
+  "/app/api",
+  shopify.validateAuthenticatedSession()
+);
 
 // Authenticated APIs
 app.use(
-  "/app/retailers",
+  "/app/api/retailers",
+  shopify.validateAuthenticatedSession(),
   retailersRoutes
 );
 
 app.use(
-  "/app/categories",
+  "/app/api/categories",
+  shopify.validateAuthenticatedSession(),
   categoriesRoutes
 );
 
 app.use(
-  "/app/settings",
+  "/app/api/settings",
+  shopify.validateAuthenticatedSession(),
   settingsRoutes
 );
 
 app.use(
-  "/app/countries",
+  "/app/api/countries",
+  shopify.validateAuthenticatedSession(),
   countriesRoutes
 );
 
 app.use(
-  "/app/import",
+  "/app/api/import",
+  shopify.validateAuthenticatedSession(),
   importRetailersCSV
 );
 

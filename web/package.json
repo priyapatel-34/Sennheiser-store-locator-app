@@ -16,6 +16,7 @@
   "dependencies": {
     "@googlemaps/google-maps-services-js": "^3.4.2",
     "@shopify/app-bridge-react": "^4.2.10",
+    "@shopify/app-bridge-utils": "^3.5.1",
     "@shopify/shopify-app-express": "^5.0.8",
     "@shopify/shopify-app-session-storage-postgresql": "^6.0.0",
     "@shopify/shopify-app-session-storage-sqlite": "^4.0.8",
