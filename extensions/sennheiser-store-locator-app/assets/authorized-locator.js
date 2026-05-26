@@ -854,10 +854,7 @@ async function handleSearch() {
             return;
         }
     }
-    console.log("Selected Search:", selectedValue);
-    console.log("Selected Lat:", searchInput.dataset.selectedLat);
-    console.log("Selected Lng:", searchInput.dataset.selectedLng);
-    console.log("Final Params:", params);
+
     await loadRetailers(params);
     await reinitializeMap();
 }
