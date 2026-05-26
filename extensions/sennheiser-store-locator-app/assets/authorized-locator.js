@@ -23,7 +23,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     } catch (err) {
         console.error('Map init failed:', err);
     }
-    await loadRetailers(); 
+    await loadRetailers();
 });
 
 // GOOGLE MAPS BOOTSTRAP
@@ -187,6 +187,26 @@ function maskPhoneNumber(phone) {
     return `${countryCode} ${visible} ••• ••••`.trim();
 }
 
+function encodePhone(phone) {
+    return btoa(phone);
+}
+
+function decodePhone(encoded) {
+    return atob(encoded);
+}
+
+function revealPhoneNumber(button) {
+    const encoded = button.dataset.phone;
+    const phone = decodePhone(encoded);
+
+    const wrapper = button.closest('.phone-wrapper');
+
+    wrapper.innerHTML = `
+      <a href="tel:${phone}">
+        ${phone}
+      </a>
+    `;
+}
 // INFO WINDOW
 
 function buildPopupHTML(store) {
