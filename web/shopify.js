@@ -20,10 +20,6 @@ const dbName =
 
 const DATABASE_URL =
   `postgres://${dbUser}:${encodeURIComponent(dbPassword)}@${dbHost}:${dbPort}/${dbName}?sslmode=require`;
-  console.log("API KEY:", process.env.SHOPIFY_API_KEY);
-  console.log("API SECRET:", process.env.SHOPIFY_API_SECRET);
-  console.log("HOST:", process.env.HOST);
-  console.log("DATABASE_URL:", process.env.DATABASE_URL);
   
 const sessionStorage =
   new PostgreSQLSessionStorage(
@@ -79,12 +75,6 @@ const shopify = shopifyApp({
 
     afterAuth: async ({ session }) => {
       try {
-        console.log("AFTER AUTH HIT");
-
-        console.log(
-          "SHOP:",
-          session.shop
-        );
 
         const result = await pool.query(
           `
@@ -104,10 +94,6 @@ const shopify = shopifyApp({
           [session.shop]
         );
 
-        console.log(
-          "STORE SAVED:",
-          result.rows[0]
-        );
       } catch (err) {
         console.error(
           "AFTER AUTH DB ERROR:",
