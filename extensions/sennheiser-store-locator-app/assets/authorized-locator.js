@@ -18,24 +18,32 @@ document.addEventListener('DOMContentLoaded', async () => {
     initCurrentLocationButton();
     await loadFilterSettings();
     await loadCategories();
-    await loadRetailers();
-    await initGoogleMap();
+    try {
+        await initGoogleMap();
+    } catch (err) {
+        console.error('Map init failed:', err);
+    }
+    await loadRetailers(); 
 });
 
 // GOOGLE MAPS BOOTSTRAP
 
 async function bootstrapGoogleMaps() {
-    if (window.google?.maps) return;
+    if (window.google?.maps?.Map) return;
     return new Promise((resolve, reject) => {
         const existing = document.getElementById('googleMapsScript');
-        if (existing) { existing.onload = resolve; return; }
+        if (existing) {
+            existing.addEventListener('load', resolve);
+            return;
+        }
+
+        window.initGoogleMapsCallback = resolve;
 
         const script = Object.assign(document.createElement('script'), {
             id: 'googleMapsScript',
-            src: `https://maps.googleapis.com/maps/api/js?key=${GOOGLE_MAPS_API_KEY}&libraries=places,marker&v=weekly`,
+            src: `https://maps.googleapis.com/maps/api/js?key=${GOOGLE_MAPS_API_KEY}&libraries=places,marker&v=weekly&callback=initGoogleMapsCallback`,
             async: true,
             defer: true,
-            onload: resolve,
             onerror: () => reject('Google Maps failed to load'),
         });
         document.head.appendChild(script);
