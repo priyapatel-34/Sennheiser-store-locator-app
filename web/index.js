@@ -17,7 +17,6 @@ import storeCategoriesRoutes from "./routes/storefront/categories.routes.js";
 import storeSettingsRoutes from "./routes/storefront/settings.routes.js";
 import { dirname } from "path";
 import { fileURLToPath } from "url";
-import { importRetailersCSV } from "./controller/admin/retailers.controller.js";
 
 const app = express();
 app.set("trust proxy", 1);
@@ -89,12 +88,6 @@ app.use(
   countriesRoutes
 );
 
-app.use(
-  "/app/api/import",
-  shopify.validateAuthenticatedSession(),
-  importRetailersCSV
-);
-
 // Public routes
 app.use("/retailers", storeRetailersRoutes);
 app.use("/categories", storeCategoriesRoutes);
@@ -105,15 +98,14 @@ app.use(shopify.cspHeaders());
 app.use(serveStatic(STATIC_PATH, { index: false }));
 
 // Catch all
-app.use("/*", (req, res) => {
-  res
+app.get("/*", (req, res) => {  res
     .status(200)
     .set("Content-Type", "text/html")
     .send(
       readFileSync(join(STATIC_PATH, "index.html"))
         .toString()
         .replace(
-          "%VITE_SHOPIFY_API_KEY%",
+          "__SHOPIFY_API_KEY__",
           process.env.SHOPIFY_API_KEY || ""
         )
     );
