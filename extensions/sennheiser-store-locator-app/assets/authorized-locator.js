@@ -166,14 +166,14 @@ function maskPhoneNumber(phone) {
     const cleaned = phone.trim();
     const match = cleaned.match(/^(\+\d{1,4})?\s*(\d+)$/);
     if (!match) {
-      return '••••••••';
+        return '••••••••';
     }
     const countryCode = match[1] || '';
     const number = match[2];
     const visible = number.slice(0, 3);
     return `${countryCode} ${visible} ••• ••••`.trim();
-  }
-  
+}
+
 // INFO WINDOW
 
 function buildPopupHTML(store) {
@@ -737,20 +737,20 @@ function renderCategories(categories) {
     if (!dropdown) return;
     dropdown.innerHTML = '';
     categories.forEach(cat => {
-      const div = document.createElement('div');
-      div.innerText = cat.name;
-      div.addEventListener('click', e => {
-        e.stopPropagation();
-        const span = document.querySelector('#categoryDropdown .dropdown-btn span');
-        if (span) {
-          span.innerText = cat.name;
-          span.classList.remove('placeholder');
-        }
-        document.getElementById('categoryDropdown').classList.remove('active');
-      });
-      dropdown.appendChild(div);
+        const div = document.createElement('div');
+        div.innerText = cat.name;
+        div.addEventListener('click', e => {
+            e.stopPropagation();
+            const span = document.querySelector('#categoryDropdown .dropdown-btn span');
+            if (span) {
+                span.innerText = cat.name;
+                span.classList.remove('placeholder');
+            }
+            document.getElementById('categoryDropdown').classList.remove('active');
+        });
+        dropdown.appendChild(div);
     });
-  }
+}
 
 // UI HELPERS
 

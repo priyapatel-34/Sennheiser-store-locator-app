@@ -313,7 +313,8 @@
     display: flex;
     flex-wrap: wrap;
 }
-.dealer-locations-section .show-number-btn{
+
+.dealer-locations-section .show-number-btn {
     background: transparent;
     color: #616267;
     outline: none;
@@ -330,15 +331,19 @@
     text-underline-offset: 2px !important;
     transition: 0.3s all;
 }
-.dealer-locations-section  .show-number-btn:hover{
+
+.dealer-locations-section .show-number-btn:hover {
     text-decoration: none;
 }
+
 .dealer-locations-section .custom-location-card .show-number-btn {
     color: #F0F0F0;
 }
-.rich-text-section h2{
-     margin-bottom: 10px;
+
+.rich-text-section h2 {
+    margin-bottom: 10px;
 }
+
 .dealer-locations-section .right-wrap.no-filters .dropdowns-wrap {
     display: none;
 }
@@ -352,6 +357,7 @@
     flex: 1;
     white-space: nowrap;
 }
+
 .dealer-locations-section .dropdown.category {
     flex: 0 0 62%;
     max-width: 62%;
