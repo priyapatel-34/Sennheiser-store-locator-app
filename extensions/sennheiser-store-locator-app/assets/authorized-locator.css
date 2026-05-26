@@ -662,26 +662,6 @@
     background: #ef4444;
 }
 
-/* INFO */
-.toast.info {
-    border-color: #3b82f6;
-}
-
-.toast.info .toast-icon,
-.toast.info .toast-progress {
-    background: #3b82f6;
-}
-
-/* WARNING */
-.toast.warning {
-    border-color: #f59e0b;
-}
-
-.toast.warning .toast-icon,
-.toast.warning .toast-progress {
-    background: #f59e0b;
-}
-
 /* DARK MODE */
 @media (prefers-color-scheme: dark) {
     .toast {

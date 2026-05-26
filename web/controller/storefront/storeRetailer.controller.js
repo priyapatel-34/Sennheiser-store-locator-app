@@ -674,7 +674,7 @@ export async function getRetailers(req, res) {
     
         const storeData = storeResult.rows[0];
     
-    const store_id = storeData.id;
+    const store_id = 3;
   
     // GET STORE SETTINGS
     const settingsResult = await pool.query(

@@ -422,7 +422,7 @@ function showToast(message, type = 'success', duration = 4000) {
         style.id = 'toast-styles';
         style.textContent = `
       #toast-container { position:fixed;bottom:24px;right:24px;z-index:999999;display:flex;flex-direction:column;gap:8px; }
-      .toast { display:flex;align-items:center;gap:10px;padding:12px 16px;border-radius:8px;color:#fff;font-size:14px;font-weight:500;
+      .toast { display:flex;align-items:center;gap:10px;padding:12px 16px;border-radius:8px;color:#1b1b1c;font-size:14px;font-weight:500;
        box-shadow:0 4px 12px rgba(0,0,0,0.2);opacity:0;transform:translateY(8px);transition:all .3s ease;min-width:240px;max-width:360px; }
       .toast.show { opacity:1;transform:translateY(0); }
       .toast.hide { opacity:0;transform:translateY(8px); }

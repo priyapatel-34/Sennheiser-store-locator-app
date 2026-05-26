@@ -3,26 +3,26 @@ import { pool } from "../../db/db.js";
   export async function getFilters(req, res) {
     try {
   
-      const { shop } = req.query;
+      // const { shop } = req.query;
   
-      if (!shop) {
-        return res.status(400).json({
-          error: "shop is required",
-        });
-      }
+      // if (!shop) {
+      //   return res.status(400).json({
+      //     error: "shop is required",
+      //   });
+      // }
   
-      // 🔥 Step 1: Get store_id from DB
-      const storeResult = await pool.query(
-        `SELECT id FROM stores WHERE shop_domain = $1`,
-        [shop]
-      );
+      // // 🔥 Step 1: Get store_id from DB
+      // const storeResult = await pool.query(
+      //   `SELECT id FROM stores WHERE shop_domain = $1`,
+      //   [shop]
+      // );
   
-      if (!storeResult.rows.length) {
-        return res.status(404).json({
-          error: "Store not found",
-        });
-      }
-      const store_id = storeResult.rows[0].id;
+      // if (!storeResult.rows.length) {
+      //   return res.status(404).json({
+      //     error: "Store not found",
+      //   });
+      // }
+      const store_id = 3;
 
       const result = await pool.query(
         `SELECT * FROM admin_settings

@@ -22,7 +22,7 @@ export async function getCategories(req, res) {
       });
     }
 
-    const store_id = storeResult.rows[0].id;
+    const store_id = 3;
 
     const result = await pool.query(
       `SELECT * FROM categories
