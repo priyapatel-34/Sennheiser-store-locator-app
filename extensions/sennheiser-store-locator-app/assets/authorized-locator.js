@@ -133,9 +133,9 @@ async function placeUserLocationMarker() {
         title: 'Your Currant Location',
         zIndex: 9999,
         icon: {
-            url: window.ASSETS.locationPin,
-            scaledSize: new google.maps.Size(42, 42),
-            anchor: new google.maps.Point(21, 42)
+            url: window.ASSETS.currentLocation,
+            scaledSize: new google.maps.Size(40, 40),
+            anchor: new google.maps.Point(20, 20)
         }
     });
 }

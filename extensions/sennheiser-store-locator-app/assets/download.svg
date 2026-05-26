@@ -1,0 +1,15 @@
+<svg width="56" height="56" viewBox="0 0 56 56" fill="none" xmlns="http://www.w3.org/2000/svg">
+
+  <!-- Pulse Ring -->
+  <circle cx="28" cy="28" r="20" fill="#0A84FF" fill-opacity="0.12"></circle>
+
+  <!-- Outer Ring -->
+  <circle cx="28" cy="28" r="12" fill="white"></circle>
+
+  <!-- Inner Blue Dot -->
+  <circle cx="28" cy="28" r="8" fill="#0A84FF"></circle>
+
+  <!-- Center White Dot -->
+  <circle cx="28" cy="28" r="2.5" fill="white"></circle>
+
+</svg>
