@@ -84,8 +84,8 @@ async function placeStoreMarkers(stores) {
         .filter(s => s.latitude && s.longitude)
         .forEach((store, index) => {
             const position = {
-                lat: parseFloat(store.latitude) + index * 0.00008,
-                lng: parseFloat(store.longitude) + index * 0.00008,
+                lat: parseFloat(store.latitude),
+                lng: parseFloat(store.longitude),
             };
 
             const pinImg = Object.assign(document.createElement('img'), {
@@ -537,7 +537,7 @@ async function loadNearbyStores() {
         const nearby = filterNearbyStores(App.stores);
         hideLocationLoader();
 
-        await reinitializeMap({ showUserLocation: true, userOnly: true });
+        // await reinitializeMap({ showUserLocation: true, userOnly: true });
 
         if (!nearby.length) {
             showToast('No retailers found', 'error');
@@ -829,10 +829,33 @@ function initDropdowns() {
         drop.querySelectorAll('.dropdown-list div').forEach(opt => {
             opt.addEventListener('click', () => {
                 const span = btn?.querySelector('span');
-                if (span) { span.classList.remove('placeholder'); span.innerText = opt.innerText; }
+                if (!span) return;
+        
+                const isCategory = drop.id === 'categoryDropdown';
+        
+                const placeholder = isCategory
+                    ? 'Select Category'
+                    : 'Radius';
+        
+                if (span.innerText === opt.innerText) {
+                    span.innerText = placeholder;
+                    span.classList.add('placeholder');
+                } else {
+                    span.innerText = opt.innerText;
+                    span.classList.remove('placeholder');
+                }
+        
                 drop.classList.remove('active');
             });
         });
+
+        // drop.querySelectorAll('.dropdown-list div').forEach(opt => {
+        //     opt.addEventListener('click', () => {
+        //         const span = btn?.querySelector('span');
+        //         if (span) { span.classList.remove('placeholder'); span.innerText = opt.innerText; }
+        //         drop.classList.remove('active');
+        //     });
+        // });
     });
 
     document.addEventListener('click', e => {
