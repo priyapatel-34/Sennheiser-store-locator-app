@@ -18,8 +18,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     initCurrentLocationButton();
     await loadFilterSettings();
     await loadCategories();
-    await initGoogleMap();
     await loadRetailers();
+    await initGoogleMap();
 });
 
 // GOOGLE MAPS BOOTSTRAP
@@ -32,7 +32,7 @@ async function bootstrapGoogleMaps() {
 
         const script = Object.assign(document.createElement('script'), {
             id: 'googleMapsScript',
-            src: `https://maps.googleapis.com/maps/api/js?key=${GOOGLE_MAPS_API_KEY}&libraries=places,marker&v=weekly&loading=async`,
+            src: `https://maps.googleapis.com/maps/api/js?key=${GOOGLE_MAPS_API_KEY}&libraries=places,marker&v=weekly`,
             async: true,
             defer: true,
             onload: resolve,
@@ -47,7 +47,8 @@ async function initGoogleMap() {
     if (!mapContainer) return;
 
     await bootstrapGoogleMaps();
-    const { Map, InfoWindow } = await google.maps.importLibrary('maps');
+    const Map = google.maps.Map;
+    const InfoWindow = google.maps.InfoWindow;
 
     sharedInfoWindow = new InfoWindow();
     App.map = new Map(mapContainer, {
@@ -70,7 +71,6 @@ async function initGoogleMap() {
 
 async function placeStoreMarkers(stores) {
     if (!App.map) return;
-    const { AdvancedMarkerElement } = await google.maps.importLibrary('marker');
 
     stores
         .filter(s => s.latitude && s.longitude)
@@ -86,11 +86,14 @@ async function placeStoreMarkers(stores) {
             });
             pinImg.style.cssText = 'width:38px;height:45px;cursor:pointer;display:block';
 
-            const marker = new AdvancedMarkerElement({
+            const marker = new google.maps.Marker({
                 map: App.map,
                 position,
                 title: store.name,
-                content: pinImg,
+                icon: {
+                    url: window.ASSETS.marker,
+                    scaledSize: new google.maps.Size(38, 45)
+                }
             });
 
             marker.addListener('click', () => {
@@ -104,25 +107,27 @@ async function placeStoreMarkers(stores) {
 
 async function placeUserLocationMarker() {
     if (!App.map || !UserLocation.latitude) return;
-    const { AdvancedMarkerElement, PinElement } = await google.maps.importLibrary('marker');
 
     if (userLocationMarker) {
-        userLocationMarker.map = null;
+        userLocationMarker.setMap(null);
         userLocationMarker = null;
     }
 
-    const pin = new PinElement({
-        background: '#4285F4',
-        borderColor: '#1a73e8',
-        glyphColor: '#ffffff',
-        scale: 1.2,
-    });
-
-    userLocationMarker = new AdvancedMarkerElement({
+    userLocationMarker = new google.maps.Marker({
         map: App.map,
-        position: { lat: UserLocation.latitude, lng: UserLocation.longitude },
+        position: {
+            lat: UserLocation.latitude,
+            lng: UserLocation.longitude
+        },
         title: 'Your Location',
-        content: pin.element,
+        icon: {
+            path: google.maps.SymbolPath.CIRCLE,
+            scale: 10,
+            fillColor: '#4285F4',
+            fillOpacity: 1,
+            strokeColor: '#ffffff',
+            strokeWeight: 2
+        }
     });
 }
 
@@ -332,9 +337,7 @@ async function reverseGeocode(lat, lng) {
     try {
         await bootstrapGoogleMaps();
 
-        const { Geocoder } = await google.maps.importLibrary('geocoding');
-
-        const geocoder = new Geocoder();
+        const geocoder = new google.maps.Geocoder();
 
         return await new Promise((resolve, reject) => {
             geocoder.geocode(
