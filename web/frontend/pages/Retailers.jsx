@@ -109,7 +109,7 @@ const validateRetailerData = (data) => {
   required("city", "City");
   required("state", "State");
   required("postal_code", "Postal code");
-  required("opening_hours", "Opening hours");
+  // required("opening_hours", "Opening hours");
   required("google_maps_link", "Google Maps link");
 
   if (!data.phone?.trim()) {
@@ -335,7 +335,7 @@ const RetailerForm = ({ retailer, onChange, errors = {}, allCategories = [], cou
     <TextField label="Google Maps Link" value={retailer.google_maps_link} onChange={(v) => onChange("google_maps_link", v)} autoComplete="off" type="url" error={errors.google_maps_link} />
 
     <Text variant="headingSm" as="h3">Additional Info</Text>
-    <TextField label="Opening Hours" value={retailer.opening_hours} onChange={(v) => onChange("opening_hours", v)} autoComplete="off" error={errors.opening_hours} placeholder="e.g. Mon–Fri 9am–6pm" />
+    <TextField label="Opening Hours" value={retailer.opening_hours} onChange={(v) => onChange("opening_hours", v)} autoComplete="off" placeholder="e.g. Mon–Fri 9am–6pm" />
     <TextField label="Notes" value={retailer.notes} onChange={(v) => onChange("notes", v)} multiline={3} autoComplete="off" />
   </FormLayout>
 );
