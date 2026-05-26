@@ -16,14 +16,17 @@ document.addEventListener('DOMContentLoaded', async () => {
     initDropdowns();
     setupLocationSearch();
     initCurrentLocationButton();
-    await loadFilterSettings();
-    await loadCategories();
+    await Promise.all([
+        loadFilterSettings(),
+        loadCategories(),
+        loadRetailers()
+    ]);
+
     try {
         await initGoogleMap();
     } catch (err) {
         console.error('Map init failed:', err);
     }
-    await loadRetailers();
 });
 
 // GOOGLE MAPS BOOTSTRAP
@@ -41,7 +44,7 @@ async function bootstrapGoogleMaps() {
 
         const script = Object.assign(document.createElement('script'), {
             id: 'googleMapsScript',
-            src: `https://maps.googleapis.com/maps/api/js?key=${GOOGLE_MAPS_API_KEY}&libraries=places,marker&v=weekly&callback=initGoogleMapsCallback`,
+            src: `https://maps.googleapis.com/maps/api/js?key=${GOOGLE_MAPS_API_KEY}&libraries=places&v=weekly&callback=initGoogleMapsCallback`,
             async: true,
             defer: true,
             onerror: () => reject('Google Maps failed to load'),
@@ -127,14 +130,12 @@ async function placeUserLocationMarker() {
             lat: UserLocation.latitude,
             lng: UserLocation.longitude
         },
-        title: 'Your Location',
+        title: 'Your Currant Location',
+        zIndex: 9999,
         icon: {
-            path: google.maps.SymbolPath.CIRCLE,
-            scale: 10,
-            fillColor: '#4285F4',
-            fillOpacity: 1,
-            strokeColor: '#ffffff',
-            strokeWeight: 2
+            url: window.ASSETS.locationPin,
+            scaledSize: new google.maps.Size(42, 42),
+            anchor: new google.maps.Point(21, 42)
         }
     });
 }
@@ -148,11 +149,11 @@ function fitBoundsToMarkers() {
 
 function clearMarkers() {
     sharedInfoWindow?.close();
-    App.markers.forEach(({ marker }) => { marker.map = null; });
+    App.markers.forEach(({ marker }) => { marker.setMap(null); });
     App.markers = [];
 
     if (userLocationMarker) {
-        userLocationMarker.map = null;
+        userLocationMarker.setMap(null);
         userLocationMarker = null;
     }
 }
@@ -644,7 +645,9 @@ async function loadRetailers(params = {}) {
         App.stores = data.filter(s => s.latitude && s.longitude);
         renderRetailers(data);
         updateDealerUI({ search: params.search, count: data.length, radius: params.radius });
-        await reinitializeMap();
+        requestAnimationFrame(() => {
+            reinitializeMap();
+        });
 
     } catch (err) {
         console.error('loadRetailers error:', err);
@@ -830,13 +833,13 @@ function initDropdowns() {
             opt.addEventListener('click', () => {
                 const span = btn?.querySelector('span');
                 if (!span) return;
-        
+
                 const isCategory = drop.id === 'categoryDropdown';
-        
+
                 const placeholder = isCategory
                     ? 'Select Category'
                     : 'Radius';
-        
+
                 if (span.innerText === opt.innerText) {
                     span.innerText = placeholder;
                     span.classList.add('placeholder');
@@ -844,7 +847,7 @@ function initDropdowns() {
                     span.innerText = opt.innerText;
                     span.classList.remove('placeholder');
                 }
-        
+
                 drop.classList.remove('active');
             });
         });
@@ -910,7 +913,7 @@ async function handleSearch() {
     }
 
     await loadRetailers(params);
-    await reinitializeMap();
+    // await reinitializeMap();
 }
 
 // LOCATION AUTOCOMPLETE
@@ -945,7 +948,7 @@ function setupLocationSearch() {
                 if (list) list.innerHTML = '<div class="no-data">No results found</div>';
                 dropdown.classList.add('active');
             }
-        }, 300);
+        }, 500);
     });
 
     input.addEventListener('keydown', e => {
