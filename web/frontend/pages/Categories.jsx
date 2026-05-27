@@ -18,8 +18,7 @@ import {
     useIndexResourceState,
     Spinner
 } from "@shopify/polaris";
-import noDataIcon from "../assets/noDataIcon.svg";
-
+import noDataIcon from "../../../assets/noDataIcon.svg";
 const fields = ["category_id", "name", "status"];
 
 const defaultCategory = (nextNumber) => ({
