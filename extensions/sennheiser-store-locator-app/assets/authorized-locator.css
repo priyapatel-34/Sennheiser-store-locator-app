@@ -68,8 +68,8 @@
     justify-content: center;
 }
 .dealer-locations-section .icon-btn img {
-    width: 35px !important;
-    height: auto !important;
+    /* width: 35px !important;
+    height: auto !important; */
 }
 .dealer-locations-section .custom-location-card .title-block h4 {
     font-family: inherit;
@@ -437,6 +437,7 @@
 }
 
 .dealer-location-block .gm-style .gm-style-iw-c {
+    max-width: 100% !important;
     padding: 0 !important;
     border-radius: 8px !important;
     box-shadow: 0px 12px 32px 0px #00000026 !important;

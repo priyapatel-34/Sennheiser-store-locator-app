@@ -252,14 +252,12 @@ function buildPopupHTML(store) {
                         <img src="${window.ASSETS.websiteIcon}" alt="Website Icon">
                     </a>
                     ` : ''}
-                    <button class="icon-btn" title="Get Directions">
                         ${store.google_maps_link ? `
                         <a href="${store.google_maps_link}" class="icon-btn" title="Get Directions" target="_blank"
                         rel="noopener noreferrer">
                         <img src="${window.ASSETS.directionsIcon}" alt="Get Directions Icon">
                         </a>
                         ` : ''}
-                    </button>
                     </div>
                 </div>
             </div>
