@@ -915,19 +915,38 @@ async function handleSearch() {
     }
 
     const params = {};
-    if (selectedValue) params.search = selectedValue;
+    if (selectedValue) {
+        params.search = selectedValue;
+    }
 
-    const categoryValue = categorySpan?.innerText?.includes('Select') ? null : categorySpan?.innerText;
-    if (categoryValue) params.category = categoryValue;
+    const categoryValue =
+        categorySpan?.innerText?.includes('Select')
+            ? null
+            : categorySpan?.innerText;
 
-    const radiusText = radiusSpan?.innerText?.includes('Radius') ? null : radiusSpan?.innerText;
+    if (categoryValue) {
+        params.category = categoryValue;
+    }
+
+    const radiusText =
+        radiusSpan?.innerText?.includes('Radius')
+            ? null
+            : radiusSpan?.innerText;
+
     if (radiusText) {
         params.radiusLabel = radiusText;
     }
+
+    if (!selectedValue && !categoryValue && !radiusText) {
+        showToast('Please enter or select at least one filter.', 'error');
+        return;
+    }
+
     if (radiusText && !selectedValue) {
         showToast('Please select a location to use radius filter.', 'error');
         return;
     }
+
     if (radiusText) {
         try {
             const num = parseFloat(radiusText);
@@ -935,9 +954,12 @@ async function handleSearch() {
 
             params.lat = location.latitude;
             params.lng = location.longitude;
-            params.radius = getDistanceUnit() === 'miles'
-                ? num * 1.60934
-                : num;
+
+            params.radius =
+                getDistanceUnit() === 'miles'
+                    ? num * 1.60934
+                    : num;
+
         } catch {
             showToast('Unable to fetch current location.', 'error');
             return;
@@ -945,7 +967,6 @@ async function handleSearch() {
     }
 
     await loadRetailers(params);
-    // await reinitializeMap();
 }
 
 // LOCATION AUTOCOMPLETE
