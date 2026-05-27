@@ -706,7 +706,8 @@ export async function getRetailers(req, res) {
 
     // DYNAMIC WHERE CONDITIONS
     let whereConditions = [
-      `r.store_id = $1`
+      `r.store_id = $1`,
+      `r.status = 'active'`
     ];
 
     let values = [store_id];
