@@ -651,9 +651,7 @@ async function loadRetailers(params = {}) {
         App.stores = data.filter(s => s.latitude && s.longitude);
         renderRetailers(data, params.radiusLabel || null);
         updateDealerUI({ search: params.search, count: data.length, radius: params.radius });
-        requestAnimationFrame(() => {
-            reinitializeMap();
-        });
+        await reinitializeMap();
 
     } catch (err) {
         console.error('loadRetailers error:', err);
