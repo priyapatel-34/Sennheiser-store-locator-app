@@ -711,9 +711,9 @@ function renderRetailers(data, radius = null) {
             <div class="icon-btn-wrap">
               ${item.website_url ? `
                 <a 
-                href="${store.website_url.startsWith('http') 
-                    ? store.website_url 
-                    : `https://${cleanUrl(store.website_url)}`}"
+                href="${item.website_url.startsWith('http') 
+                    ? item.website_url 
+                    : `https://${cleanUrl(item.website_url)}`}"
                 class="icon-btn"
                 title="Visit Website"
                 target="_blank"
