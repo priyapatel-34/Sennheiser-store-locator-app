@@ -644,12 +644,12 @@ async function loadRetailers(params = {}) {
             App.stores = [];
             renderRetailers([]);
             updateDealerUI({ count: 0 });
-            return;
-        }
+        return;
+    }
 
         const data = result.success ? (result.data || []) : [];
         App.stores = data.filter(s => s.latitude && s.longitude);
-        renderRetailers(data);
+        renderRetailers(data, params.radiusLabel || null);
         updateDealerUI({ search: params.search, count: data.length, radius: params.radius });
         requestAnimationFrame(() => {
             reinitializeMap();
@@ -688,7 +688,7 @@ async function loadFilterSettings() {
 
 // RENDER
 
-function renderRetailers(data) {
+function renderRetailers(data, radius = null) {
     const container = document.getElementById('retailers-list');
     if (!container) return;
 
@@ -698,7 +698,10 @@ function renderRetailers(data) {
         <div class="empty-icon">
           <img src="${window.ASSETS.location2}" alt="No Results"/>
         </div>
-        <h3>No results found within 10 mi of your search point.</h3>
+        <h3>
+        No results found
+        ${radius ? `within ${radius} of your search point.` : 'for your search point.'}
+        </h3>
         <p>There are no authorized dealers matching your current filters. Try expanding your search area or adjusting the category.</p>
       </div>`;
         return;
@@ -775,17 +778,29 @@ function renderCategories(categories) {
     const dropdown = document.querySelector('#categoryDropdown .dropdown-list');
     if (!dropdown) return;
     dropdown.innerHTML = '';
+    if (!categories || categories.length === 0) {
+        dropdown.innerHTML = `
+          <div class="no-category-found">
+            No category found
+          </div>
+        `;
+        return;
+    }
     categories.forEach(cat => {
         const div = document.createElement('div');
         div.innerText = cat.name;
         div.addEventListener('click', e => {
             e.stopPropagation();
-            const span = document.querySelector('#categoryDropdown .dropdown-btn span');
+            const span = document.querySelector(
+                '#categoryDropdown .dropdown-btn span'
+            );
             if (span) {
                 span.innerText = cat.name;
                 span.classList.remove('placeholder');
             }
-            document.getElementById('categoryDropdown').classList.remove('active');
+            document
+                .getElementById('categoryDropdown')
+                .classList.remove('active');
         });
         dropdown.appendChild(div);
     });
@@ -908,6 +923,9 @@ async function handleSearch() {
     if (categoryValue) params.category = categoryValue;
 
     const radiusText = radiusSpan?.innerText?.includes('Radius') ? null : radiusSpan?.innerText;
+    if (radiusText) {
+        params.radiusLabel = radiusText;
+    }
     if (radiusText && !selectedValue) {
         showToast('Please select a location to use radius filter.', 'error');
         return;
