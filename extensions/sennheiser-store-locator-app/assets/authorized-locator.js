@@ -177,15 +177,21 @@ async function reinitializeMap({ showUserLocation = false, userOnly = false } = 
 //masked mobile numbers
 function maskPhoneNumber(phone) {
     if (!phone) return '';
-    const cleaned = phone.trim();
-    const match = cleaned.match(/^(\+\d{1,4})?\s*(\d+)$/);
-    if (!match) {
-        return '••••••••';
+
+    const cleaned = phone.toString().trim();
+
+    const countryCodeMatch = cleaned.match(/^(\+\d{1,4})/);
+    const countryCode = countryCodeMatch ? countryCodeMatch[1] : '';
+
+    const digits = cleaned.replace(/\D/g, '');
+
+    if (digits.length < 3) {
+        return '••• ••• ••••';
     }
-    const countryCode = match[1] || '';
-    const number = match[2];
-    const visible = number.slice(0, 3);
-    return `${countryCode} ${visible} ••• ••••`.trim();
+
+    const visible = digits.slice(0, 3);
+
+    return `${countryCode ? countryCode + ' ' : ''}${visible} ••• ••••`;
 }
 
 function encodePhone(phone) {
