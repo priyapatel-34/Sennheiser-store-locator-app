@@ -425,7 +425,7 @@
 }
 
 .dealer-location-block .gm-style .upper-wrap>*:last-child {
-    padding-right: 60px;
+    /* padding-right: 60px; */
     min-height: 24px;
     display: flex;
     align-items: center;
@@ -446,7 +446,8 @@
 }
 .dealer-locations-section .phone-wrapper {
     display: flex;
-    gap: 8px;
+    flex-wrap: wrap;
+    gap: 0 8px;
     align-items: center;
 }
 .dealer-location-block .gm-style .custom-footer-block {
@@ -454,9 +455,9 @@
     align-items: center;
     justify-content: space-between;
     gap: 8px;
-    position: absolute;
+    /* position: absolute;
     bottom: 19px;
-    right: 16px;
+    right: 16px; */
 }
 .dealer-location-block .gm-style .gm-style-iw-d {
     overflow: auto !important;

@@ -226,57 +226,44 @@ function buildPopupHTML(store) {
       </span>`;
 
     return `
-    <div style="min-width:220px;max-width:280px;font-family:'Sennheiser Neue';font-size:12px;line-height:1.5;padding:4px 2px;color:#818183;font-weight:500">
+    <div style="min-width:220px;max-width:280px;font-family:'Sennheiser Neue';font-size:12px;line-height:1.5;padding:16px;color:#818183;font-weight:500">
       <div class="upper-wrap">
         <h4 style="padding-right:18px;margin:0 0 8px;color:#000;font-size:16px;font-weight:600;line-height:20px">${store.name}</h4>
         <p style="margin:4px 0;display:flex;gap:6px">${icon(window.ASSETS.location, 'Location')} ${address || 'N/A'}</p>
         ${store.distance ? `<p style="margin:4px 0"><strong>Distance:</strong> ${formatDistance(store.distance)}</p>` : ''}
         ${store.phone ? `
-            <p style="margin:4px 0;display:flex;gap:6px;align-items:center">
-              ${icon(window.ASSETS.phone, 'Phone')}
-              <span class="phone-wrapper">
-                <span class="masked-phone">
-                  ${maskPhoneNumber(store.phone)}
-                </span>
-                <button
-                  type="button"
-                  class="show-number-btn"
-                  data-phone="${encodePhone(store.phone)}"
-                  onclick="revealPhoneNumber(this)"
-                >
-                  Show Number
-                </button>
-              </span>
-            </p>
-          ` : ''}
-      </div>
-      <div class="custom-footer-block">
-       <div class="icon-btn-wrap">
-              ${store.website_url ? `
-                <a 
-                  href="${store.website_url}" 
-                  class="icon-btn" 
-                  title="Visit Website"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  <img src="${window.ASSETS.websiteIcon}" alt="Website Icon">
-                </a>
-              ` : ''}
-            <button class="icon-btn" title="Get Directions">
-              ${store.google_maps_link ? `
-                <a 
-                  href="${store.google_maps_link}" 
-                  class="icon-btn" 
-                  title="Get Directions"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  <img src="${window.ASSETS.directionsIcon}" alt="Get Directions Icon">
-                </a>
-              ` : ''}
-            </button>
+            <div style="margin:4px 0;display:flex;gap:6px;align-items:center; justify-content: space-between;">
+                <div style="display:flex;gap:6px;align-items:center;">
+                    ${icon(window.ASSETS.phone, 'Phone')}
+                    <span class="phone-wrapper">
+                    <span class="masked-phone">
+                        ${maskPhoneNumber(store.phone)}
+                    </span>
+                    <button type="button" class="show-number-btn" data-phone="${encodePhone(store.phone)}"
+                        onclick="revealPhoneNumber(this)">
+                        Show Number
+                    </button>
+                    </span>
+                </div>
+                <div class="custom-footer-block">
+                    <div class="icon-btn-wrap">
+                    ${store.website_url ? `
+                    <a href="${store.website_url}" class="icon-btn" title="Visit Website" target="_blank" rel="noopener noreferrer">
+                        <img src="${window.ASSETS.websiteIcon}" alt="Website Icon">
+                    </a>
+                    ` : ''}
+                    <button class="icon-btn" title="Get Directions">
+                        ${store.google_maps_link ? `
+                        <a href="${store.google_maps_link}" class="icon-btn" title="Get Directions" target="_blank"
+                        rel="noopener noreferrer">
+                        <img src="${window.ASSETS.directionsIcon}" alt="Get Directions Icon">
+                        </a>
+                        ` : ''}
+                    </button>
+                    </div>
+                </div>
             </div>
+          ` : ''}
       </div>
     </div>`;
 }
