@@ -81,13 +81,13 @@
 }
 
 .dealer-locations-section .icon-btn img {
-    width: 16px !important;
+    width: 35px !important;
     height: auto !important;
 }
 
 .dealer-locations-section .custom-location-card .title-block h4 {
     font-family: inherit;
-    font-weight: 700;
+    font-weight: 500;
     font-size: 16px;
     line-height: 20px;
 }
@@ -191,9 +191,9 @@
 }
 
 .dealer-locations-section .upper-block h3 {
-    font-weight: 500;
+    font-weight: 400;
     font-size: 18px;
-    line-height: 1.1;
+    line-height: 0.8;
     font-family: inherit;
 }
 
