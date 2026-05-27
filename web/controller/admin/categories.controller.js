@@ -24,6 +24,12 @@ export async function getCategories(req, res) {
   try {
     const store_id = await getShopIdFromSession(res);
 
+    if (!store_id) {
+      return res.status(400).json({
+        error: "Store ID missing"
+      });
+    }
+    
     const { search } = req.query;
 
     const cleanSearch = search
@@ -84,7 +90,13 @@ export async function getCategories(req, res) {
 export async function createCategories(req, res) {
   try {
     const { name } = req.body;
-    const store_id = req.store_id;
+    const store_id = await getShopIdFromSession(res);
+
+    if (!store_id) {
+      return res.status(400).json({
+        error: "Store ID missing"
+      });
+    }
 
     if (!name) {
       return res.status(400).json({ error: "Name required" });
