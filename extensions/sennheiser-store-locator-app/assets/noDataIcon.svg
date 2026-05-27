@@ -1,0 +1,72 @@
+<svg width="760" height="530" viewBox="0 0 760 530" fill="none" xmlns="http://www.w3.org/2000/svg">
+
+  <!-- Background -->
+  <rect width="760" height="530" fill="#F9FCFD"></rect>
+
+  <!-- Background Bubbles -->
+  <circle cx="510" cy="120" r="140" fill="#DFF5FA" opacity="0.7"></circle>
+  <circle cx="610" cy="260" r="90" fill="#DDF3F8" opacity="0.6"></circle>
+  <circle cx="520" cy="390" r="65" fill="#E5F8FC" opacity="0.8"></circle>
+  <circle cx="90" cy="70" r="55" fill="#DDF5FA" opacity="0.8"></circle>
+  <circle cx="200" cy="130" r="48" stroke="#E1EFF3" stroke-width="2"></circle>
+  <circle cx="120" cy="360" r="60" stroke="#E1EFF3" stroke-width="2"></circle>
+  <circle cx="250" cy="450" r="48" stroke="#E1EFF3" stroke-width="2"></circle>
+
+  <!-- Small Floating Circles -->
+  <circle cx="70" cy="490" r="12" fill="#DFF5FA"></circle>
+  <circle cx="705" cy="490" r="15" fill="#DFF5FA"></circle>
+  <circle cx="705" cy="160" r="12" fill="#DFF5FA"></circle>
+  <circle cx="105" cy="210" r="7" fill="#E5F8FC"></circle>
+  <circle cx="340" cy="55" r="22" fill="#F2FAFC"></circle>
+  <circle cx="565" cy="32" r="14" fill="#F4FBFD"></circle>
+
+  <!-- Main Illustration -->
+  <g transform="translate(285 145)">
+
+    <!-- Bottom Line -->
+    <line x1="-40" y1="170" x2="230" y2="170" stroke="#4C4C4C" stroke-width="4" stroke-linecap="round"></line>
+
+    <!-- Small Decorative Lines -->
+    <line x1="-10" y1="185" x2="35" y2="185" stroke="#4C4C4C" stroke-width="4" stroke-linecap="round"></line>
+    <line x1="165" y1="185" x2="215" y2="185" stroke="#4C4C4C" stroke-width="4" stroke-linecap="round"></line>
+
+    <!-- Paper Bag -->
+    <path d="M35 20H120L150 50V155H35V20Z" fill="white" stroke="#4C4C4C" stroke-width="4" stroke-linejoin="round"></path>
+
+    <!-- Fold -->
+    <path d="M120 20V50H150" fill="#EAEAEA" stroke="#4C4C4C" stroke-width="4" stroke-linejoin="round"></path>
+
+    <!-- Zigzag Bottom -->
+    <path d="M35 120L48 128L61 120L74 128L87 120L100 128L113 120L126 128L139 120L150 128" stroke="#4C4C4C" stroke-width="4" fill="none" stroke-linejoin="round"></path>
+
+    <!-- Face -->
+    <circle cx="70" cy="75" r="5" fill="#4C4C4C"></circle>
+    <circle cx="115" cy="75" r="5" fill="#4C4C4C"></circle>
+
+    <path d="M80 105C90 92 108 92 118 105" stroke="#4C4C4C" stroke-width="4" stroke-linecap="round"></path>
+
+    <!-- Search Icon -->
+    <circle cx="182" cy="103" r="16" stroke="#4C4C4C" stroke-width="4"></circle>
+
+    <line x1="193" y1="114" x2="208" y2="129" stroke="#4C4C4C" stroke-width="4" stroke-linecap="round"></line>
+
+    <!-- Decorative X -->
+    <line x1="-5" y1="115" x2="10" y2="130" stroke="#4C4C4C" stroke-width="3" stroke-linecap="round"></line>
+
+    <line x1="10" y1="115" x2="-5" y2="130" stroke="#4C4C4C" stroke-width="3" stroke-linecap="round"></line>
+
+    <!-- Alert Lines -->
+    <line x1="0" y1="10" x2="15" y2="25" stroke="#4C4C4C" stroke-width="4" stroke-linecap="round"></line>
+
+    <line x1="20" y1="0" x2="30" y2="20" stroke="#4C4C4C" stroke-width="4" stroke-linecap="round"></line>
+
+    <line x1="40" y1="-5" x2="40" y2="18" stroke="#4C4C4C" stroke-width="4" stroke-linecap="round"></line>
+
+  </g>
+
+  <!-- Text -->
+  <text x="380" y="400" text-anchor="middle" fill="#4C4C4C" font-size="34" font-family="Arial, sans-serif" font-weight="400">
+    No Data Found !
+  </text>
+
+</svg>
