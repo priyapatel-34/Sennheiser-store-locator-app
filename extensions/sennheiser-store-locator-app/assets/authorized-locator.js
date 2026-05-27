@@ -765,7 +765,6 @@ function renderRetailers(data) {
                   </div>
                 </li>
               ` : ''}
-            ${item.website_url ? `<li><em><img src="${window.ASSETS.website}" alt="Website"></em><a href="${item.website_url}" target="_blank" rel="noopener">${cleanUrl(item.website_url)}</a></li>` : ''}
           </ul>
         </div>
       </div>`;
@@ -798,23 +797,34 @@ function updateDealerUI({ search = null, count = 0, radius = null } = {}) {
     const titleEl = document.getElementById('dealer-title');
     const subtitleEl = document.getElementById('dealer-subtitle');
     const countEl = document.getElementById('dealer-count');
-    const locStr = `Showing ${count} authorized location${count !== 1 ? 's' : ''}`;
 
-    if (titleEl) titleEl.innerText = search ? `Dealers near "${search}"` : 'Dealers';
-
-    if (subtitleEl) {
-        if (search) {
-            subtitleEl.innerText = count > 0
-                ? `Showing ${count} available dealer${count !== 1 ? 's' : ''} ${locStr}${radius ? ` within ${radius}` : ''}`
-                : `No dealers found for "${search}"`;
-        } else {
-            subtitleEl.innerText = count > 0
-                ? `Showing ${count} available dealer${count !== 1 ? 's' : ''}`
-                : 'Showing available dealer, use filters or search to refine results.';
-        }
+    if (titleEl) {
+        titleEl.innerText = search
+            ? `Dealers near "${search}"`
+            : 'Dealers';
     }
 
-    if (countEl) countEl.innerText = locStr;
+    let subtitle = '';
+
+    if (count > 0) {
+        subtitle = `Showing ${count} available dealer${count !== 1 ? 's' : ''}`;
+
+        if (radius) {
+            subtitle += ` within ${radius}`;
+        }
+    } else {
+        subtitle = search
+            ? `No dealers found for "${search}"`
+            : 'No dealers available.';
+    }
+
+    if (subtitleEl) {
+        subtitleEl.innerText = subtitle;
+    }
+
+    if (countEl) {
+        countEl.innerText = `${count} Location${count !== 1 ? 's' : ''}`;
+    }
 }
 
 function cleanUrl(url) {
