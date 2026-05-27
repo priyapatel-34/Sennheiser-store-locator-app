@@ -73,8 +73,11 @@ async function initGoogleMap() {
     });
 
     if (App.stores.length) {
-        await placeStoreMarkers(App.stores);
-        fitBoundsToMarkers();
+        google.maps.event.addListenerOnce(App.map, 'idle', async () => {
+            mapContainer.classList.add('map-loaded'); 
+            await placeStoreMarkers(App.stores);
+            fitBoundsToMarkers();
+        });
     }
 }
 
@@ -162,16 +165,17 @@ async function reinitializeMap({ showUserLocation = false, userOnly = false } = 
     if (!App.map) return;
     clearMarkers();
 
-    if (userOnly) {
-        await placeUserLocationMarker();
-        App.map.setCenter({ lat: UserLocation.latitude, lng: UserLocation.longitude });
-        App.map.setZoom(12);
-        return;
-    }
-
-    await placeStoreMarkers(App.stores);
-    if (showUserLocation) await placeUserLocationMarker();
-    fitBoundsToMarkers();
+    google.maps.event.addListenerOnce(App.map, 'idle', async () => {
+        if (userOnly) {
+            await placeUserLocationMarker();
+            App.map.setCenter({ lat: UserLocation.latitude, lng: UserLocation.longitude });
+            App.map.setZoom(12);
+            return;
+        }
+        await placeStoreMarkers(App.stores);
+        if (showUserLocation) await placeUserLocationMarker();
+        fitBoundsToMarkers();
+    });
 }
 
 //masked mobile numbers
@@ -248,7 +252,9 @@ function buildPopupHTML(store) {
                 <div class="custom-footer-block">
                     <div class="icon-btn-wrap">
                     ${store.website_url ? `
-                    <a href="${store.website_url}" class="icon-btn" title="Visit Website" target="_blank" rel="noopener noreferrer">
+                    <a href="${store.website_url.startsWith('http') 
+                        ? store.website_url 
+                        : `https://${cleanUrl(store.website_url)}`}" class="icon-btn" title="Visit Website" target="_blank" rel="noopener noreferrer">
                         <img src="${window.ASSETS.websiteIcon}" alt="Website Icon">
                     </a>
                     ` : ''}
@@ -705,13 +711,15 @@ function renderRetailers(data, radius = null) {
             <div class="icon-btn-wrap">
               ${item.website_url ? `
                 <a 
-                  href="${item.website_url}" 
-                  class="icon-btn" 
-                  title="Visit Website"
-                  target="_blank"
-                  rel="noopener noreferrer"
+                href="${store.website_url.startsWith('http') 
+                    ? store.website_url 
+                    : `https://${cleanUrl(store.website_url)}`}"
+                class="icon-btn"
+                title="Visit Website"
+                target="_blank"
+                rel="noopener noreferrer"
                 >
-                  <img src="${window.ASSETS.websiteIcon}" alt="Website Icon">
+                <img src="${window.ASSETS.websiteIcon}" alt="Website Icon">
                 </a>
               ` : ''}
             <button class="icon-btn" title="Get Directions">
