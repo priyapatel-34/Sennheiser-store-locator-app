@@ -338,7 +338,7 @@ const Categories = () => {
                             <Spinner accessibilityLabel="Loading retailers" size="large" />
                         </div>
                     ) : categories.length === 0 ? (
-                        <EmptyState heading="No categories Found" image="https://cdn.shopify.com/s/files/1/2662/0166/files/noDataIcon.svg?v=1779872530">
+                        <EmptyState heading="No categories Found" image="https://cdn.shopify.com/s/files/1/0262/4071/2726/files/emptystate-files.png">
                         </EmptyState>
                     ) : (
                         <>
