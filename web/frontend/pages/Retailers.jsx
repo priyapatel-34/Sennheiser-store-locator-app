@@ -24,7 +24,7 @@ import {
 } from "@shopify/polaris";
 import { handleApiResponse } from "../utils/apiHandler";
 import CommonToast from "../components/Toast";
-import noDataIcon from "../../../assets/noDataIcon.svg";
+
 const GAP_MAP = { "0": "0px", "100": "4px", "200": "8px", "300": "12px", "400": "16px", "500": "20px", "600": "24px", "800": "32px", "1600": "64px" };
 const gapPx = (g) => GAP_MAP[String(g)] ?? "0px";
 
@@ -834,7 +834,7 @@ const RetailersManager = () => {
           ) : retailers.length === 0 ? (
             <EmptyState
               heading="No retailers found"
-              image={noDataIcon}
+              image="https://cdn.shopify.com/s/files/1/2662/0166/files/noDataIcon.svg?v=1779872530"
             />
           ) : (
             <>

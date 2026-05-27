@@ -18,7 +18,7 @@ import {
     useIndexResourceState,
     Spinner
 } from "@shopify/polaris";
-import noDataIcon from "../../../assets/noDataIcon.svg";
+
 const fields = ["category_id", "name", "status"];
 
 const defaultCategory = (nextNumber) => ({
@@ -338,7 +338,7 @@ const Categories = () => {
                             <Spinner accessibilityLabel="Loading retailers" size="large" />
                         </div>
                     ) : categories.length === 0 ? (
-                        <EmptyState heading="No categories Found" image={noDataIcon}>
+                        <EmptyState heading="No categories Found" image="https://cdn.shopify.com/s/files/1/2662/0166/files/noDataIcon.svg?v=1779872530">
                         </EmptyState>
                     ) : (
                         <>
