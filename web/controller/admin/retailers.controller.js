@@ -173,7 +173,7 @@ export async function getRetailers(req, res) {
       country ? `%${country}%` : null,
       category ? `%${category}%` : null,
       cleanSearch,
-    ];  
+    ];
 
     const result = await pool.query(query, values);
     let retailers = result.rows;
@@ -182,38 +182,38 @@ export async function getRetailers(req, res) {
       const userLat = parseFloat(lat);
       const userLng = parseFloat(lng);
       const radiusKm = parseFloat(radius);
-    
+
       const calculateDistance = (lat1, lon1, lat2, lon2) => {
         const R = 6371;
-    
+
         const toRad = (deg) => deg * (Math.PI / 180);
-    
+
         const dLat = toRad(lat2 - lat1);
         const dLon = toRad(lon2 - lon1);
-    
+
         const a =
           Math.sin(dLat / 2) * Math.sin(dLat / 2) +
           Math.cos(toRad(lat1)) *
           Math.cos(toRad(lat2)) *
           Math.sin(dLon / 2) *
           Math.sin(dLon / 2);
-    
+
         return R * (2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a)));
       };
       retailers = retailers
-      .filter(
-        (retailer) =>
-          retailer.latitude &&
-          retailer.longitude
-      )
-      .map((retailer) => {
+        .filter(
+          (retailer) =>
+            retailer.latitude &&
+            retailer.longitude
+        )
+        .map((retailer) => {
           const distance = calculateDistance(
             userLat,
             userLng,
             parseFloat(retailer.latitude),
             parseFloat(retailer.longitude)
           );
-    
+
           return {
             ...retailer,
             distance: Number(distance.toFixed(2)),
@@ -538,13 +538,17 @@ const validateRetailerRow = (row) => {
   }
 
   // Google Maps URL validation
-  if (
-    cleanText(row.google_maps_link) &&
-    !/^(https?:\/\/)?(www\.)?(google\.)?.+/i.test(
-      row.google_maps_link.trim()
-    )
-  ) {
-    errors.push(`Invalid google_maps_link: "${row.google_maps_link}"`);
+  if (cleanText(row.google_maps_link)) {
+    const link = row.google_maps_link.trim();
+
+    const googleMapsRegex =
+      /^(https?:\/\/)?(www\.)?(maps\.app\.goo\.gl|share\.google|goo\.gl\/maps|google\.com\/maps|google\.com\/search|maps\.google\.com).+/i;
+
+    if (!googleMapsRegex.test(link)) {
+      errors.push(
+        `Invalid google_maps_link: "${row.google_maps_link}"`
+      );
+    }
   }
 
   // Phone validation
@@ -593,7 +597,10 @@ const validateRetailerRow = (row) => {
 
 export async function importRetailersCSV(req, res) {
   if (!req.file) {
-    return res.status(400).json({ success: false, error: "CSV file is required." });
+    return res.status(400).json({
+      success: false,
+      error: "CSV file is required.",
+    });
   }
 
   const filePath = req.file.path;
@@ -602,17 +609,17 @@ export async function importRetailersCSV(req, res) {
   let successCount = 0;
 
   try {
-    // 2. Parse the CSV into memory first, then process
     await new Promise((resolve, reject) => {
       fs.createReadStream(filePath)
-        .on("error", reject) // ← handle unreadable file
+        .on("error", reject)
         .pipe(csv())
         .on("data", (row) => results.push(row))
-        .on("error", reject) // ← handle malformed CSV
+        .on("error", reject)
         .on("end", resolve);
     });
   } catch (parseErr) {
     safeUnlink(filePath);
+
     return res.status(400).json({
       success: false,
       error: "Failed to parse CSV file. Ensure it is a valid CSV.",
@@ -621,10 +628,37 @@ export async function importRetailersCSV(req, res) {
 
   if (results.length === 0) {
     safeUnlink(filePath);
-    return res.status(400).json({ success: false, error: "CSV file is empty." });
+
+    return res.status(400).json({
+      success: false,
+      error: "CSV file is empty.",
+    });
   }
 
   const store_id = await getShopIdFromSession(res);
+
+  // Track duplicates inside uploaded CSV
+  const Retailers = new Set();
+
+  const buildRetailerDuplicateKey = (row) => {
+    return [
+      cleanText(row.name)?.toLowerCase(),
+      cleanText(row.address_line1)?.toLowerCase(),
+      cleanText(row.address_line2)?.toLowerCase(),
+      cleanText(row.city)?.toLowerCase(),
+      cleanText(row.state)?.toLowerCase(),
+      cleanText(row.country)?.toLowerCase(),
+      cleanText(row.postal_code)?.toLowerCase(),
+      cleanText(row.phone)?.toLowerCase(),
+      cleanText(row.email)?.toLowerCase(),
+      cleanText(row.website_url)?.toLowerCase(),
+      cleanText(row.google_maps_link)?.toLowerCase(),
+      toNumber(row.latitude),
+      toNumber(row.longitude),
+      cleanText(row.opening_hours)?.toLowerCase(),
+      normalizeRetailerType(row.retailer_type),
+    ].join("|");
+  };
 
   for (let i = 0; i < results.length; i++) {
     const row = results[i];
@@ -643,6 +677,20 @@ export async function importRetailersCSV(req, res) {
       continue;
     }
 
+    // Check duplicate inside uploaded CSV
+    const duplicateKey = buildRetailerDuplicateKey(row);
+
+    if (Retailers.has(duplicateKey)) {
+      errors.push({
+        row: rowNum,
+        error: "Duplicate retailer found in uploaded file",
+      });
+
+      continue;
+    }
+
+    Retailers.add(duplicateKey);
+
     const client = await pool.connect();
 
     try {
@@ -654,21 +702,34 @@ export async function importRetailersCSV(req, res) {
       );
 
       if (!countryRes.rows.length) {
-        errors.push({ row: rowNum, error: `Country not found: "${row.country}"` });
+        errors.push({
+          row: rowNum,
+          error: `Country not found: "${row.country}"`,
+        });
+
         await client.query("ROLLBACK");
         continue;
       }
+
       const country_id = countryRes.rows[0].id;
 
-      const retailerType = normalizeRetailerType(row.retailer_type);
+      const retailerType = normalizeRetailerType(
+        row.retailer_type
+      );
+
       if (retailerType === null) {
         errors.push({
           row: rowNum,
-          error: `Invalid retailer_type: "${row.retailer_type}". Allowed values: ${ALLOWED_RETAILER_TYPES.join(", ")}. Common aliases like "physical" and "store" are also accepted.`,
+          error: `Invalid retailer_type: "${row.retailer_type}". Allowed values: ${ALLOWED_RETAILER_TYPES.join(
+            ", "
+          )}. Common aliases like "physical" and "store" are also accepted.`,
         });
+
         await client.query("ROLLBACK");
         continue;
       }
+
+      // Duplicate validation against DB
       const duplicateRetailer = await client.query(
         `
         SELECT id
@@ -676,20 +737,26 @@ export async function importRetailersCSV(req, res) {
         WHERE store_id = $1
           AND LOWER(TRIM(name)) = LOWER(TRIM($2))
           AND LOWER(TRIM(COALESCE(address_line1, ''))) = LOWER(TRIM(COALESCE($3, '')))
-          AND LOWER(TRIM(COALESCE(city, ''))) = LOWER(TRIM(COALESCE($4, '')))
-          AND LOWER(TRIM(COALESCE(state, ''))) = LOWER(TRIM(COALESCE($5, '')))
-          AND country_id = $6
-          AND COALESCE(latitude, 0::numeric) = COALESCE($7::numeric, 0::numeric)
-          AND COALESCE(longitude, 0::numeric) = COALESCE($8::numeric, 0::numeric)
-          AND LOWER(TRIM(COALESCE(opening_hours, ''))) = LOWER(TRIM(COALESCE($9, '')))
-          AND LOWER(TRIM(COALESCE(postal_code, ''))) = LOWER(TRIM(COALESCE($10, '')))
-          AND LOWER(TRIM(COALESCE(phone, ''))) = LOWER(TRIM(COALESCE($11, '')))
+          AND LOWER(TRIM(COALESCE(address_line2, ''))) = LOWER(TRIM(COALESCE($4, '')))
+          AND LOWER(TRIM(COALESCE(city, ''))) = LOWER(TRIM(COALESCE($5, '')))
+          AND LOWER(TRIM(COALESCE(state, ''))) = LOWER(TRIM(COALESCE($6, '')))
+          AND country_id = $7
+          AND COALESCE(latitude, 0::numeric) = COALESCE($8::numeric, 0::numeric)
+          AND COALESCE(longitude, 0::numeric) = COALESCE($9::numeric, 0::numeric)
+          AND LOWER(TRIM(COALESCE(opening_hours, ''))) = LOWER(TRIM(COALESCE($10, '')))
+          AND LOWER(TRIM(COALESCE(postal_code, ''))) = LOWER(TRIM(COALESCE($11, '')))
+          AND LOWER(TRIM(COALESCE(phone, ''))) = LOWER(TRIM(COALESCE($12, '')))
+          AND LOWER(TRIM(COALESCE(email, ''))) = LOWER(TRIM(COALESCE($13, '')))
+          AND LOWER(TRIM(COALESCE(website_url, ''))) = LOWER(TRIM(COALESCE($14, '')))
+          AND LOWER(TRIM(COALESCE(google_maps_link, ''))) = LOWER(TRIM(COALESCE($15, '')))
+          AND LOWER(TRIM(COALESCE(retailer_type, ''))) = LOWER(TRIM(COALESCE($16, '')))
         LIMIT 1
         `,
         [
           store_id,
           cleanText(row.name),
           cleanText(row.address_line1),
+          cleanText(row.address_line2),
           cleanText(row.city),
           cleanText(row.state),
           country_id,
@@ -698,6 +765,10 @@ export async function importRetailersCSV(req, res) {
           cleanText(row.opening_hours),
           cleanText(row.postal_code),
           cleanText(row.phone),
+          cleanText(row.email),
+          cleanText(row.website_url),
+          cleanText(row.google_maps_link),
+          retailerType,
         ]
       );
 
@@ -712,14 +783,32 @@ export async function importRetailersCSV(req, res) {
       }
 
       const rawStatus = cleanText(row.status)?.toLowerCase();
-      const retailerStatus = rawStatus === "inactive" ? "inactive" : "active";
+
+      const retailerStatus =
+        rawStatus === "inactive"
+          ? "inactive"
+          : "active";
 
       const retailerRes = await client.query(
         `INSERT INTO retailers (
-          store_id, country_id, name, retailer_type, status,
-          address_line1, address_line2, city, state, postal_code,
-          latitude, longitude, phone, email,
-          website_url, google_maps_link, opening_hours, notes
+          store_id,
+          country_id,
+          name,
+          retailer_type,
+          status,
+          address_line1,
+          address_line2,
+          city,
+          state,
+          postal_code,
+          latitude,
+          longitude,
+          phone,
+          email,
+          website_url,
+          google_maps_link,
+          opening_hours,
+          notes
         )
         VALUES (
           $1,$2,$3,$4,$5,
@@ -752,27 +841,46 @@ export async function importRetailersCSV(req, res) {
       );
 
       if (!retailerRes.rows.length) {
-        errors.push({ row: rowNum, error: `Duplicate retailer skipped: "${row.name}"` });
+        errors.push({
+          row: rowNum,
+          error: `Duplicate retailer skipped: "${row.name}"`,
+        });
+
         await client.query("ROLLBACK");
         continue;
       }
 
       const retailer_id = retailerRes.rows[0].id;
 
+      // Categories
       if (cleanText(row.categories)) {
-        const categoryList = row.categories.split(",").map((c) => c.trim()).filter(Boolean);
+        const categoryList = row.categories
+          .split(",")
+          .map((c) => c.trim())
+          .filter(Boolean);
 
         for (const catName of categoryList) {
           const catRes = await client.query(
-            `SELECT id FROM categories WHERE name ILIKE $1 AND store_id = $2 LIMIT 1`,
+            `
+            SELECT id
+            FROM categories
+            WHERE name ILIKE $1
+              AND store_id = $2
+            LIMIT 1
+            `,
             [catName, store_id]
           );
 
           if (catRes.rows.length) {
             await client.query(
-              `INSERT INTO retailer_categories (retailer_id, category_id)
-               VALUES ($1, $2)
-               ON CONFLICT DO NOTHING`,
+              `
+              INSERT INTO retailer_categories (
+                retailer_id,
+                category_id
+              )
+              VALUES ($1, $2)
+              ON CONFLICT DO NOTHING
+              `,
               [retailer_id, catRes.rows[0].id]
             );
           }
@@ -783,8 +891,16 @@ export async function importRetailersCSV(req, res) {
       successCount++;
     } catch (rowErr) {
       await client.query("ROLLBACK");
-      console.error(`Row ${rowNum} failed:`, rowErr.message);
-      errors.push({ row: rowNum, error: rowErr.message });
+
+      console.error(
+        `Row ${rowNum} failed:`,
+        rowErr.message
+      );
+
+      errors.push({
+        row: rowNum,
+        error: rowErr.message,
+      });
     } finally {
       client.release();
     }
@@ -796,7 +912,12 @@ export async function importRetailersCSV(req, res) {
     success: true,
     total: results.length,
     inserted: successCount,
-    skipped: results.length - successCount - errors.filter(e => e.error.startsWith("Duplicate")).length,
+    skipped:
+      results.length -
+      successCount -
+      errors.filter((e) =>
+        e.error.startsWith("Duplicate")
+      ).length,
     failed: errors.length,
     errors,
   });
