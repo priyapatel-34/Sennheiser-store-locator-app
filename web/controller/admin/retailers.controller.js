@@ -541,14 +541,23 @@ const validateRetailerRow = (row) => {
   if (cleanText(row.google_maps_link)) {
     const link = row.google_maps_link.trim();
 
-    const googleMapsRegex =
-      /^(https?:\/\/)?(www\.)?(maps\.app\.goo\.gl|share\.google|goo\.gl\/maps|google\.com\/maps|google\.com\/search|maps\.google\.com).+/i;
+    // Skip plain text "Google Maps" — treat as missing
+    if (link.toLowerCase() === "google maps") {
+      errors.push(`Invalid google_maps_link: "${row.google_maps_link}"`);
+    } else {
+      const googleMapsRegex =
+        /^(https?:\/\/)?(www\.)?(maps\.app\.goo\.gl|share\.google|goo\.gl\/maps|google\.com\/maps|google\.com\/search|maps\.google\.com).+/i;
 
-    if (!googleMapsRegex.test(link)) {
-      errors.push(
-        `Invalid google_maps_link: "${row.google_maps_link}"`
-      );
+      if (!googleMapsRegex.test(link)) {
+        errors.push(`Invalid google_maps_link: "${row.google_maps_link}"`);
+      }
     }
+  }
+
+  if (!isValidGoogleMapsLink(link)) {
+    errors.push(
+      `Invalid google_maps_link: "${row.google_maps_link}"`
+    );
   }
 
   // Phone validation
