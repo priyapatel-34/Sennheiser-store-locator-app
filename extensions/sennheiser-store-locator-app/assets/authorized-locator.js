@@ -147,7 +147,12 @@ function fitBoundsToMarkers() {
     if (!App.map || !App.markers.length) return;
     const bounds = new google.maps.LatLngBounds();
     App.markers.forEach(m => bounds.extend(m.position));
-    App.map.fitBounds(bounds, 60);
+    if (App.markers.length === 1) {
+        App.map.setCenter(App.markers[0].position);
+        App.map.setZoom(15);
+    } else {
+        App.map.fitBounds(bounds, 60);
+    }
 }
 
 function clearMarkers() {
@@ -161,7 +166,10 @@ function clearMarkers() {
     }
 }
 
-async function reinitializeMap({ showUserLocation = false, userOnly = false } = {}) {
+async function reinitializeMap({
+    showUserLocation = false,
+    userOnly = false
+} = {}) {
     if (!App.map) return;
 
     clearMarkers();
@@ -184,7 +192,9 @@ async function reinitializeMap({ showUserLocation = false, userOnly = false } = 
         await placeUserLocationMarker();
     }
 
-    fitBoundsToMarkers();
+    setTimeout(() => {
+        fitBoundsToMarkers();
+    }, 100);
 }
 
 //masked mobile numbers
@@ -230,7 +240,7 @@ function revealPhoneNumber(button) {
 // INFO WINDOW
 
 function buildPopupHTML(store) {
-    const address = [store.address_line1, store.address_line2, store.city, store.state, store.postal_code]
+    const address = [store.address_line]
         .filter(Boolean).join(', ');
 
     const icon = (src, alt) =>
@@ -706,7 +716,7 @@ function renderRetailers(data, radius = null) {
     }
 
     container.innerHTML = data.map(item => {
-        const address = [item.address_line1, item.address_line2, item.city, item.state, item.postal_code]
+        const address = [item.address_line1]
             .filter(Boolean).join(', ');
 
         const iconLi = (src, alt, content) =>
@@ -969,7 +979,6 @@ async function handleSearch() {
     }
 
     await loadRetailers(params);
-    await reinitializeMap();
 }
 
 // LOCATION AUTOCOMPLETE
