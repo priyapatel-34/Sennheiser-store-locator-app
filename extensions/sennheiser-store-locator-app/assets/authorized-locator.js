@@ -241,7 +241,7 @@ function revealPhoneNumber(button) {
 // INFO WINDOW
 
 function buildPopupHTML(store) {
-    const address = [store.address_line]
+    const address = [store.address_line1]
         .filter(Boolean).join(', ');
 
     const icon = (src, alt) =>
