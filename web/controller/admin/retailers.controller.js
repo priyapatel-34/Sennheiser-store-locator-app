@@ -504,6 +504,19 @@ const normalizeRetailerType = (val) => {
   return RETAILER_TYPE_ALIASES[key] ?? null;
 };
 
+const isValidGoogleMapsLink = (url) => {
+  if (!url) return true;
+
+  return /^https?:\/\/.+/i.test(url) && (
+    /maps\.app\.goo\.gl/i.test(url) ||
+    /goo\.gl\/maps/i.test(url) ||
+    /google\.com\/maps/i.test(url) ||
+    /google\.com\/search/i.test(url) ||
+    /maps\.google\.com/i.test(url) ||
+    /share\.google/i.test(url)
+  );
+};
+
 const validateRetailerRow = (row) => {
   const errors = [];
 
@@ -540,20 +553,14 @@ const validateRetailerRow = (row) => {
   // Google Maps URL validation
   if (cleanText(row.google_maps_link)) {
     const link = row.google_maps_link.trim();
-
-    if (link.toLowerCase() === "google maps") {
+  
+    if (
+      link.toLowerCase() === "google maps" ||
+      !isValidGoogleMapsLink(link)
+    ) {
       errors.push(
         `Invalid google_maps_link: "${row.google_maps_link}"`
       );
-    } else {
-      const googleMapsRegex =
-        /^(https?:\/\/)?(www\.)?(maps\.app\.goo\.gl|share\.google|goo\.gl\/maps|google\.com\/maps|google\.com\/search|maps\.google\.com).+/i;
-
-      if (!googleMapsRegex.test(link)) {
-        errors.push(
-          `Invalid google_maps_link: "${row.google_maps_link}"`
-        );
-      }
     }
   }
 
