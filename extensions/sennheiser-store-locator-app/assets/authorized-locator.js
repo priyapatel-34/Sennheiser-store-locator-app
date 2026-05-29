@@ -114,7 +114,11 @@ async function placeStoreMarkers(stores) {
                 sharedInfoWindow.setContent(buildPopupHTML(store));
                 sharedInfoWindow.open({ map: App.map, anchor: marker });
             });
-
+            console.log(
+                store.name,
+                store.latitude,
+                store.longitude
+              );
             App.markers.push({ marker, storeId: store.id, position });
         });
 }
@@ -166,25 +170,24 @@ function clearMarkers() {
     }
 }
 
-async function reinitializeMap({
-    showUserLocation = false,
-    userOnly = false
-} = {}) {
+async function reinitializeMap({ showUserLocation = false, userOnly = false } = {}) {
     if (!App.map) return;
 
     clearMarkers();
 
     if (userOnly) {
         await placeUserLocationMarker();
-
-        App.map.setCenter({
-            lat: UserLocation.latitude,
-            lng: UserLocation.longitude
-        });
-
+        App.map.setCenter({ lat: UserLocation.latitude, lng: UserLocation.longitude });
         App.map.setZoom(12);
         return;
     }
+
+    // Wait for map to be idle before placing markers
+    await new Promise(resolve => {
+        google.maps.event.addListenerOnce(App.map, 'idle', resolve);
+        // Fallback in case idle already fired
+        setTimeout(resolve, 500);
+    });
 
     await placeStoreMarkers(App.stores);
 
@@ -192,9 +195,7 @@ async function reinitializeMap({
         await placeUserLocationMarker();
     }
 
-    setTimeout(() => {
-        fitBoundsToMarkers();
-    }, 100);
+    setTimeout(() => fitBoundsToMarkers(), 100);
 }
 
 //masked mobile numbers
@@ -639,6 +640,7 @@ async function showFallbackLocation(location) {
 }
 
 async function loadRetailers(params = {}) {
+    clearMarkers(); 
     try {
         const query = new URLSearchParams();
         ['search', 'category', 'radius', 'lat', 'lng'].forEach(k => {
@@ -650,22 +652,23 @@ async function loadRetailers(params = {}) {
 
         if (result.success && result.data.length === 0 && result.fallback_location) {
             if (!App.map) await initGoogleMap();
+            App.stores = []; // ← clear stores first
             await showFallbackLocation(result.fallback_location);
-            App.stores = [];
             renderRetailers([]);
             updateDealerUI({ count: 0 });
-        return;
-    }
+            return;
+        }
 
         const data = result.success ? (result.data || []) : [];
-        App.stores = data.filter(s => s.latitude && s.longitude);
+        App.stores = data.filter(s => s.latitude && s.longitude); // ← set BEFORE reinitializeMap
         renderRetailers(data, params.radiusLabel || null);
         updateDealerUI({ search: params.search, count: data.length, radius: params.radius });
-        await reinitializeMap();
+        await reinitializeMap(); // ← now uses fresh App.stores
 
     } catch (err) {
         console.error('loadRetailers error:', err);
         showToast('Something went wrong while loading retailers.', 'error');
+        App.stores = [];
         renderRetailers([]);
         updateDealerUI({ count: 0 });
     }
