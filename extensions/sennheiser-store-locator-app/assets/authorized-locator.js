@@ -163,19 +163,28 @@ function clearMarkers() {
 
 async function reinitializeMap({ showUserLocation = false, userOnly = false } = {}) {
     if (!App.map) return;
+
     clearMarkers();
 
-    google.maps.event.addListenerOnce(App.map, 'idle', async () => {
-        if (userOnly) {
-            await placeUserLocationMarker();
-            App.map.setCenter({ lat: UserLocation.latitude, lng: UserLocation.longitude });
-            App.map.setZoom(12);
-            return;
-        }
-        await placeStoreMarkers(App.stores);
-        if (showUserLocation) await placeUserLocationMarker();
-        fitBoundsToMarkers();
-    });
+    if (userOnly) {
+        await placeUserLocationMarker();
+
+        App.map.setCenter({
+            lat: UserLocation.latitude,
+            lng: UserLocation.longitude
+        });
+
+        App.map.setZoom(12);
+        return;
+    }
+
+    await placeStoreMarkers(App.stores);
+
+    if (showUserLocation) {
+        await placeUserLocationMarker();
+    }
+
+    fitBoundsToMarkers();
 }
 
 //masked mobile numbers
@@ -960,6 +969,7 @@ async function handleSearch() {
     }
 
     await loadRetailers(params);
+    await reinitializeMap();
 }
 
 // LOCATION AUTOCOMPLETE
