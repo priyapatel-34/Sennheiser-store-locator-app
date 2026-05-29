@@ -801,18 +801,36 @@ const RetailersManager = () => {
 
       {/* Table Card */}
       <BlockStack gap="400">
-        {selectedResources.length > 0 && (
-          <Banner tone="info">
-            <InlineStack align="space-between">
-              <Text as="p">
-                {selectedResources.length} retailer{selectedResources.length > 1 ? "s" : ""} selected
-              </Text>
-              <Button tone="critical" onClick={() => setDeleteContext({ type: "bulk", items: selectedResources })}>
-                Delete Selected
-              </Button>
-            </InlineStack>
-          </Banner>
-        )}
+      {selectedResources.length > 0 && (
+      <Banner tone="info">
+        <InlineStack align="space-between">
+          <Text as="p">
+            {selectedResources.length} retailer
+            {selectedResources.length > 1 ? "s" : ""} selected
+          </Text>
+
+          <InlineStack gap="200">
+            <Button
+              onClick={() => handleSelectionChange([])}
+            >
+              Clear Selection
+            </Button>
+
+            <Button
+              tone="critical"
+              onClick={() =>
+                setDeleteContext({
+                  type: "bulk",
+                  items: selectedResources,
+                })
+              }
+            >
+              Delete Selected
+            </Button>
+          </InlineStack>
+        </InlineStack>
+      </Banner>
+      )}
 
         <Card padding="0">
           <Box padding="400" background="bg-surface-secondary" borderBlockEndWidth="025" borderColor="border">
