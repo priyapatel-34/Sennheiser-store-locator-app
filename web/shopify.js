@@ -74,33 +74,20 @@ const shopify = shopifyApp({
     callbackPath: "/api/auth/callback",
 
     afterAuth: async ({ session }) => {
-      try {
-
-        const result = await pool.query(
-          `
-          INSERT INTO stores (
-            shop_domain,
-            is_installed
-          )
-          VALUES ($1, true)
-
-          ON CONFLICT (shop_domain)
-
-          DO UPDATE SET
-            is_installed = true
-
-          RETURNING *;
-          `,
-          [session.shop]
-        );
-
-      } catch (err) {
-        console.error(
-          "AFTER AUTH DB ERROR:",
-          err
-        );
-      }
-    },
+      await pool.query(
+        `
+        INSERT INTO stores (
+          shop_domain,
+          is_installed
+        )
+        VALUES ($1, true)
+        ON CONFLICT (shop_domain)
+        DO UPDATE SET
+          is_installed = true
+        `,
+        [session.shop]
+      );
+    }
   },
 
   webhooks: {
