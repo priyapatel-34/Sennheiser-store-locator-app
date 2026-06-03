@@ -114,11 +114,6 @@ async function placeStoreMarkers(stores) {
                 sharedInfoWindow.setContent(buildPopupHTML(store));
                 sharedInfoWindow.open({ map: App.map, anchor: marker });
             });
-            console.log(
-                store.name,
-                store.latitude,
-                store.longitude
-              );
             App.markers.push({ marker, storeId: store.id, position });
         });
 }
