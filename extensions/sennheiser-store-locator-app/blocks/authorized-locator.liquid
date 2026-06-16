@@ -5,7 +5,7 @@
   window.SHOP_DOMAIN = "{{ shop.permanent_domain }}";
   window.DISTANCE_UNIT = "{{ block.settings.distance_unit }}";
   window.RETAILER_API_URL = "https://dechbstorelocatorprd-b2dccxb2bffgf4fa.westeurope-01.azurewebsites.net";
-   window.ASSETS = {
+  window.ASSETS = {
     marker: "{{ 'Mock_Map_Markers.svg' | asset_url }}",
     location: "{{ 'Location (1).svg' | asset_url }}",
     location2: "{{ 'Location_2.svg' | asset_url }}",
@@ -14,7 +14,7 @@
     locationPin: "{{ 'location-pin.svg' | asset_url }}",
     websiteIcon: "{{ 'Web.svg' | asset_url }}",
     directionsIcon: "{{ 'Nav-icon.svg' | asset_url }}",
-    currantLocation: "{{ 'currentLocation.svg' | asset_url }}"
+    currentLocation: "{{ 'currentLocation.svg' | asset_url }}"
   };
 </script>
 
@@ -127,7 +127,8 @@
                   <div class="dropdown-list"></div>
                 </div>
               </div>
-              <button class="btn btn-primary">Search</button>
+              <button class="btn btn-secondary" id="reset-filters-btn">Reset</button>
+              <button class="btn btn-primary" id="search-btn">Search</button>
             </div>
 
           </div>

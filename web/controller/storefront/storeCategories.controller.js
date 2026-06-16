@@ -10,7 +10,6 @@ export async function getCategories(req, res) {
       });
     }
 
-    // 🔥 Step 1: Get store_id from DB
     const storeResult = await pool.query(
       `SELECT id FROM stores WHERE shop_domain = $1`,
       [shop]

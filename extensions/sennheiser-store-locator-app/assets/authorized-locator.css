@@ -95,6 +95,15 @@
     gap: 12px;
     width: 100%;
 }
+
+.btn.btn-secondary {
+    background-color: #333;
+}
+
+.btn.btn-secondary:hover {
+    background-color: #222;
+}
+
 .dealer-locations-section .btn-wrap .btn {
     margin: 0;
     min-width: unset;
@@ -105,6 +114,7 @@
     font-family: inherit;
     font-size: 14px;
     font-weight: 500;
+    height: fit-content;
 }
 .dealer-locations-section .btn-wrap .btn.secondary-btn {
     border: 2px solid #222222;
@@ -208,8 +218,8 @@
     margin-bottom: 32px;
 }
 .dealer-locations-section .search-container .left-wrap {
-    flex: 0 0 52.79%;
-    max-width: 52.79%;
+    flex: 0 0 calc(52.79% - 86px);
+    max-width: calc(52.79% - 86px);
 }
 .dealer-locations-section .input-box {
     background: #333;
@@ -376,14 +386,13 @@
     display: block;
 }
 .dealer-locations-section .radius {
-    min-width: 120px;
+    min-width: 100px;
 }
 .dealer-locations-section .location-list-item {
     font-weight: normal;
 }
 .dealer-locations-section .location-list-item h5 {
     display: flex;
-    flex-wrap: wrap;
     gap: 4px;
     align-items: flex-start;
 }
@@ -815,8 +824,8 @@
 }
 @media (max-width:1199px) {
     .dealer-locations-section .search-container .left-wrap {
-        flex: 0 0 50%;
-        max-width: 50%;
+        flex: 0 0 calc(50% - 86px);
+        max-width: calc(50% - 86px);
     }
     .dealer-locations-section .dropdown.category {
         flex: 0 0 58%;

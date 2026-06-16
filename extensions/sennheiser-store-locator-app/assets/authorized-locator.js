@@ -1,25 +1,54 @@
 const GOOGLE_MAPS_API_KEY = 'AIzaSyDHtyLmeYuEQGSsZQMB6FOTWe1IiGtJ7Bg';
-const NEARBY_STORES_RADIUS_KM = 5;
 const GOOGLE_MAP_ID = 'DEMO_MAP_ID';
+const DEFAULT_RADIUS = 5;
+const RADIUS_OPTIONS = [5, 10, 15, 20, 25];
+const DEFAULT_MAP_ZOOM = 5;
 const UserLocation = { latitude: null, longitude: null, accuracy: null };
-const App = { stores: [], map: null, markers: [] };
+const App = {
+    stores: [],
+    map: null,
+    markers: [],
+    storeCountryCode: null,
+    storeCountryName: null,
+    showGlobalRetailers: false,
+    defaultMapCenter: null,
+    defaultMapZoom: DEFAULT_MAP_ZOOM,
+};
 const SHOP = window.SHOP_DOMAIN;
 let sharedInfoWindow = null;
 let userLocationMarker = null;
 let isFetchingNearby = false;
 let suggestionTimer = null;
+let autocompleteService = null;
+let placesService = null;
 
 const getDistanceUnit = () => window.DISTANCE_UNIT || 'km';
+
+const getApiBaseUrl = () => (window.RETAILER_API_URL || '').replace(/\/$/, '');
+
+const TOAST = {
+    selectSuggestion: 'Please select a location from the suggestions list.',
+    noFilters: 'Please enter a location, category, or radius before searching.',
+    radiusNeedsLocation: 'Please select a location before applying a radius filter.',
+    locationFailed: 'Unable to detect your location. Enable location services or search manually.',
+    loadRetailersFailed: 'Unable to load dealers. Please try again.',
+    loadCategoriesFailed: 'Unable to load categories.',
+    loadSettingsFailed: 'Unable to load store locator settings.',
+    noRetailersFound: 'No retailers found matching the selected filters.',
+    outsideStoreCountry: (country) =>
+        `You appear to be outside ${country}. Search for a location in ${country} or reset to browse all dealers.`,
+};
 
 document.addEventListener('DOMContentLoaded', async () => {
     renderRadiusDropdown();
     initDropdowns();
     setupLocationSearch();
     initCurrentLocationButton();
+
+    await loadFilterSettings();
     await Promise.all([
-        loadFilterSettings(),
         loadCategories(),
-        loadRetailers()
+        loadRetailers(),
     ]);
 
     try {
@@ -32,23 +61,65 @@ document.addEventListener('DOMContentLoaded', async () => {
 // GOOGLE MAPS BOOTSTRAP
 
 async function bootstrapGoogleMaps() {
-    if (window.google?.maps?.Map) return;
+    if (window.google?.maps?.Map) {
+        if (!autocompleteService) {
+            autocompleteService =
+                new google.maps.places.AutocompleteService();
+
+            placesService =
+                new google.maps.places.PlacesService(
+                    document.createElement("div")
+                );
+        }
+        return;
+    }
+
     return new Promise((resolve, reject) => {
-        const existing = document.getElementById('googleMapsScript');
+        const existing =
+            document.getElementById("googleMapsScript");
+
         if (existing) {
-            existing.addEventListener('load', resolve);
+            existing.addEventListener("load", () => {
+                autocompleteService =
+                    new google.maps.places.AutocompleteService();
+
+                placesService =
+                    new google.maps.places.PlacesService(
+                        document.createElement("div")
+                    );
+
+                resolve();
+            });
             return;
         }
 
-        window.initGoogleMapsCallback = resolve;
+        window.initGoogleMapsCallback = () => {
 
-        const script = Object.assign(document.createElement('script'), {
-            id: 'googleMapsScript',
-            src: `https://maps.googleapis.com/maps/api/js?key=${GOOGLE_MAPS_API_KEY}&libraries=places&v=weekly&callback=initGoogleMapsCallback`,
-            async: true,
-            defer: true,
-            onerror: () => reject('Google Maps failed to load'),
-        });
+            autocompleteService =
+                new google.maps.places.AutocompleteService();
+
+            placesService =
+                new google.maps.places.PlacesService(
+                    document.createElement("div")
+                );
+
+            resolve();
+        };
+
+        const script =
+            document.createElement("script");
+
+        script.id = "googleMapsScript";
+
+        script.src =
+            `https://maps.googleapis.com/maps/api/js?key=${GOOGLE_MAPS_API_KEY}&libraries=places&v=weekly&callback=initGoogleMapsCallback`;
+
+        script.async = true;
+        script.defer = true;
+
+        script.onerror = () =>
+            reject("Google Maps failed to load");
+
         document.head.appendChild(script);
     });
 }
@@ -62,9 +133,12 @@ async function initGoogleMap() {
     const InfoWindow = google.maps.InfoWindow;
 
     sharedInfoWindow = new InfoWindow();
+    const initialCenter = App.defaultMapCenter || { lat: 0, lng: 0 };
+    const initialZoom = App.defaultMapCenter ? App.defaultMapZoom : 2;
+
     App.map = new Map(mapContainer, {
-        zoom: 6,
-        center: { lat: 20, lng: 0 },
+        zoom: initialZoom,
+        center: initialCenter,
         mapId: GOOGLE_MAP_ID,
         mapTypeControl: true,
         fullscreenControl: true,
@@ -74,7 +148,7 @@ async function initGoogleMap() {
 
     if (App.stores.length) {
         google.maps.event.addListenerOnce(App.map, 'idle', async () => {
-            mapContainer.classList.add('map-loaded'); 
+            mapContainer.classList.add('map-loaded');
             await placeStoreMarkers(App.stores);
             fitBoundsToMarkers();
         });
@@ -132,7 +206,7 @@ async function placeUserLocationMarker() {
             lat: UserLocation.latitude,
             lng: UserLocation.longitude
         },
-        title: 'Your Currant Location',
+        title: 'Your Current Location',
         zIndex: 9999,
         icon: {
             url: window.ASSETS.currentLocation,
@@ -165,7 +239,11 @@ function clearMarkers() {
     }
 }
 
-async function reinitializeMap({ showUserLocation = false, userOnly = false } = {}) {
+async function reinitializeMap({
+    showUserLocation = false,
+    userOnly = false,
+    skipFitBounds = false,
+} = {}) {
     if (!App.map) return;
 
     clearMarkers();
@@ -177,10 +255,8 @@ async function reinitializeMap({ showUserLocation = false, userOnly = false } = 
         return;
     }
 
-    // Wait for map to be idle before placing markers
     await new Promise(resolve => {
         google.maps.event.addListenerOnce(App.map, 'idle', resolve);
-        // Fallback in case idle already fired
         setTimeout(resolve, 500);
     });
 
@@ -190,7 +266,9 @@ async function reinitializeMap({ showUserLocation = false, userOnly = false } = 
         await placeUserLocationMarker();
     }
 
-    setTimeout(() => fitBoundsToMarkers(), 100);
+    if (!skipFitBounds) {
+        setTimeout(() => fitBoundsToMarkers(), 100);
+    }
 }
 
 //masked mobile numbers
@@ -249,7 +327,6 @@ function buildPopupHTML(store) {
       <div class="upper-wrap">
         <h4 style="padding-right:18px;margin:0 0 8px;color:#000;font-size:16px;font-weight:600;line-height:20px">${store.name}</h4>
         <p style="margin:4px 0;display:flex;gap:6px">${icon(window.ASSETS.location, 'Location')} ${address || 'N/A'}</p>
-        ${store.distance ? `<p style="margin:4px 0"><strong>Distance:</strong> ${formatDistance(store.distance)}</p>` : ''}
         ${store.phone ? `
             <div style="margin:4px 0;display:flex;gap:6px;align-items:center; justify-content: space-between;">
                 <div style="display:flex;gap:6px;align-items:center;">
@@ -267,9 +344,9 @@ function buildPopupHTML(store) {
                 <div class="custom-footer-block">
                     <div class="icon-btn-wrap">
                     ${store.website_url ? `
-                    <a href="${store.website_url.startsWith('http') 
-                        ? store.website_url 
-                        : `https://${cleanUrl(store.website_url)}`}" class="icon-btn" title="Visit Website" target="_blank" rel="noopener noreferrer">
+                    <a href="${store.website_url.startsWith('http')
+                    ? store.website_url
+                    : `https://${cleanUrl(store.website_url)}`}" class="icon-btn" title="Visit Website" target="_blank" rel="noopener noreferrer">
                         <img src="${window.ASSETS.websiteIcon}" alt="Website Icon">
                     </a>
                     ` : ''}
@@ -295,28 +372,272 @@ function formatDistance(distanceKm) {
         : distanceKm.toFixed(2) + ' km';
 }
 
-function calculateDistance(lat1, lon1, lat2, lon2) {
-    const R = 6371;
-    const toRad = deg => deg * (Math.PI / 180);
-    const dLat = toRad(lat2 - lat1);
-    const dLon = toRad(lon2 - lon1);
-    const a = Math.sin(dLat / 2) ** 2 +
-        Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLon / 2) ** 2;
-    return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+function applyDefaultRadiusToUI() {
+    const radiusSpan = document.querySelector('#radiusDropdown .dropdown-btn span');
+    if (!radiusSpan || !radiusSpan.classList.contains('placeholder')) return;
+
+    const unit = getDistanceUnit();
+    const radius = DEFAULT_RADIUS;
+    radiusSpan.innerText = `${radius} ${unit}`;
+    radiusSpan.classList.remove('placeholder');
 }
 
-function filterNearbyStores(stores, radiusKm = NEARBY_STORES_RADIUS_KM) {
-    if (!UserLocation.latitude || !UserLocation.longitude) return [];
-    return stores
-        .map(store => ({
-            ...store,
-            distance: parseFloat(
-                calculateDistance(UserLocation.latitude, UserLocation.longitude,
-                    parseFloat(store.latitude), parseFloat(store.longitude)).toFixed(2)
-            ),
-        }))
-        .filter(s => s.distance <= radiusKm)
-        .sort((a, b) => a.distance - b.distance);
+function hideInitialRetailersLoader() {
+    document.getElementById('retailers-loader')?.remove();
+}
+
+function parseRadiusKm(radiusText) {
+    if (!radiusText) return null;
+
+    const num = parseFloat(radiusText);
+    if (Number.isNaN(num)) return null;
+
+    return getDistanceUnit() === 'miles' ? num * 1.60934 : num;
+}
+
+function buildSearchParamsFromUI({ defaultRadius = false } = {}) {
+    const searchInput = document.querySelector('input[name="location-address"]');
+    const categorySpan = document.querySelector('#categoryDropdown .dropdown-btn span');
+    const radiusSpan = document.querySelector('#radiusDropdown .dropdown-btn span');
+
+    const params = {};
+    const selectedValue = searchInput?.dataset?.selectedSearch || null;
+    const lat = searchInput?.dataset?.selectedLat;
+    const lng = searchInput?.dataset?.selectedLng;
+
+    if (selectedValue) {
+        params.search = selectedValue;
+        params.searchDisplay =
+            searchInput.dataset.searchLabel || selectedValue;
+
+        if (searchInput.dataset.searchType) {
+            params.searchType = searchInput.dataset.searchType;
+        }
+
+        if (lat && lng) {
+            params.lat = lat;
+            params.lng = lng;
+        }
+    }
+
+    const categoryValue =
+        categorySpan?.innerText?.includes('Select')
+            ? null
+            : categorySpan?.innerText;
+
+    if (categoryValue) {
+        params.category = categoryValue;
+    }
+
+    const radiusText =
+        radiusSpan?.innerText?.includes('Radius')
+            ? null
+            : radiusSpan?.innerText;
+
+    if (radiusText) {
+        params.radiusLabel = radiusText;
+        params.radius = parseRadiusKm(radiusText);
+    } else if (defaultRadius && lat && lng) {
+        const unit = getDistanceUnit();
+        const radius = DEFAULT_RADIUS;
+        params.radius = getDistanceUnit() === 'miles'
+            ? radius * 1.60934
+            : radius;
+        params.radiusLabel = `${radius} ${unit}`;
+    }
+
+    return params;
+}
+
+function validateSearchParams(params, { requireLocation = false } = {}) {
+    const searchInput = document.querySelector('input[name="location-address"]');
+    const typedValue = searchInput?.value?.trim() || '';
+    const selectedValue = searchInput?.dataset?.selectedSearch || null;
+    const categoryValue = params.category || null;
+    const radiusText = params.radiusLabel || null;
+
+    if (typedValue && !selectedValue) {
+        showToast(TOAST.selectSuggestion, 'error');
+        return false;
+    }
+
+    if (!selectedValue && !categoryValue && !radiusText) {
+        showToast(TOAST.noFilters, 'error');
+        return false;
+    }
+
+    if (radiusText && !selectedValue) {
+        showToast(TOAST.radiusNeedsLocation, 'error');
+        return false;
+    }
+
+    if (requireLocation && !selectedValue) {
+        showToast(TOAST.locationFailed, 'error');
+        return false;
+    }
+
+    return true;
+}
+
+function clearLocationSelection() {
+    const input = document.querySelector('input[name="location-address"]');
+    if (!input) return;
+
+    delete input.dataset.selectedSearch;
+    delete input.dataset.selectedLat;
+    delete input.dataset.selectedLng;
+    delete input.dataset.selectedPlaceId;
+    delete input.dataset.searchType;
+    delete input.dataset.searchLabel;
+}
+
+function getAddressComponent(components, type, useShort = false) {
+    const match = components?.find((component) =>
+        component.types.includes(type)
+    );
+
+    if (!match) return null;
+    return useShort ? match.short_name : match.long_name;
+}
+
+function resolvePlaceSearchMeta(place, typedValue = '') {
+    const components = place.address_components || [];
+    const postalCode = getAddressComponent(components, 'postal_code');
+    const locality =
+        getAddressComponent(components, 'locality') ||
+        getAddressComponent(components, 'administrative_area_level_2');
+    const adminArea = getAddressComponent(components, 'administrative_area_level_1');
+    const country = getAddressComponent(components, 'country');
+    const typed = typedValue.trim();
+    const typedNormalized = typed.toLowerCase();
+    const addressPinMatch = place.formatted_address?.match(/^(\d{4,10})\b/);
+
+    if (/^\d{4,10}$/.test(typed.replace(/[\s-]/g, ''))) {
+        const pin = typed.replace(/[\s-]/g, '');
+        return {
+            searchTerm: pin,
+            searchType: 'postal_code',
+            displayLabel: pin,
+        };
+    }
+
+    if (addressPinMatch) {
+        return {
+            searchTerm: addressPinMatch[1],
+            searchType: 'postal_code',
+            displayLabel: addressPinMatch[1],
+        };
+    }
+
+    if (postalCode && typed.includes(postalCode)) {
+        return {
+            searchTerm: postalCode,
+            searchType: 'postal_code',
+            displayLabel: postalCode,
+        };
+    }
+
+    if (country && typedNormalized === country.toLowerCase()) {
+        return {
+            searchTerm: country,
+            searchType: 'country',
+            displayLabel: country,
+        };
+    }
+
+    if (adminArea && typedNormalized === adminArea.toLowerCase()) {
+        return {
+            searchTerm: adminArea,
+            searchType: 'state',
+            displayLabel: adminArea,
+        };
+    }
+
+    if (locality && typedNormalized === locality.toLowerCase()) {
+        return {
+            searchTerm: locality,
+            searchType: 'city',
+            displayLabel: locality,
+        };
+    }
+
+    if (postalCode) {
+        return {
+            searchTerm: postalCode,
+            searchType: 'postal_code',
+            displayLabel: postalCode,
+        };
+    }
+
+    if (locality) {
+        return {
+            searchTerm: locality,
+            searchType: 'city',
+            displayLabel: locality,
+        };
+    }
+
+    if (adminArea) {
+        return {
+            searchTerm: adminArea,
+            searchType: 'state',
+            displayLabel: adminArea,
+        };
+    }
+
+    if (country) {
+        return {
+            searchTerm: country,
+            searchType: 'country',
+            displayLabel: country,
+        };
+    }
+
+    const fallback = place.formatted_address.split(',')[0].trim();
+    return {
+        searchTerm: fallback,
+        searchType: 'general',
+        displayLabel: fallback,
+    };
+}
+
+function applyPlaceSelection(input, meta) {
+    input.dataset.selectedSearch = meta.searchTerm;
+    input.dataset.searchType = meta.searchType;
+    input.dataset.searchLabel = meta.displayLabel;
+}
+
+function getMapZoomForRadius(radiusKm) {
+    if (radiusKm <= 5) return 13;
+    if (radiusKm <= 15) return 12;
+    if (radiusKm <= 25) return 11;
+    return 10;
+}
+
+async function centerMapOnSearch(params, { showUserLocation = false } = {}) {
+    if (!params.lat || !params.lng || !App.map) return;
+
+    const center = {
+        lat: parseFloat(params.lat),
+        lng: parseFloat(params.lng),
+    };
+
+    if (isNaN(center.lat) || isNaN(center.lng)) return;
+
+    await reinitializeMap({
+        showUserLocation,
+        skipFitBounds: true,
+    });
+
+    App.map.setCenter(center);
+
+    if (params.radius) {
+        App.map.setZoom(getMapZoomForRadius(parseFloat(params.radius)));
+    } else if (App.stores.length) {
+        fitBoundsToMarkers();
+    } else {
+        App.map.setZoom(10);
+    }
 }
 
 // RADIUS DROPDOWN
@@ -325,12 +646,15 @@ function renderRadiusDropdown() {
     const dropdown = document.querySelector('#radiusDropdown .dropdown-list');
     if (!dropdown) return;
     const unit = getDistanceUnit();
-    dropdown.innerHTML = [5, 10, 15, 20, 25].map(v => `<div>${v} ${unit}</div>`).join('');
+    const options = RADIUS_OPTIONS;
+    dropdown.innerHTML = options
+        .map((value) => `<div>${value} ${unit}</div>`)
+        .join('');
 }
 
 // GEOLOCATION
 
-async function getCurrentLocation() {
+async function getCurrentLocation({ allowIpFallback = false } = {}) {
     return new Promise(async (resolve, reject) => {
         const setAndResolve = ({ latitude, longitude, accuracy = null, source }) => {
             Object.assign(UserLocation, { latitude, longitude, accuracy });
@@ -340,12 +664,28 @@ async function getCurrentLocation() {
         if (!navigator.geolocation) return reject(new Error('Geolocation not supported'));
 
         navigator.geolocation.getCurrentPosition(
-            ({ coords }) => setAndResolve({ latitude: coords.latitude, longitude: coords.longitude, accuracy: coords.accuracy, source: 'gps' }),
+            ({ coords }) => setAndResolve({
+                latitude: coords.latitude,
+                longitude: coords.longitude,
+                accuracy: coords.accuracy,
+                source: 'gps',
+            }),
             async () => {
+                if (!allowIpFallback) {
+                    reject(new Error('Location permission denied'));
+                    return;
+                }
+
                 try {
                     const data = await fetch('https://ipapi.co/json/').then(r => r.json());
-                    setAndResolve({ latitude: data.latitude, longitude: data.longitude, source: 'ip' });
-                } catch (err) { reject(err); }
+                    setAndResolve({
+                        latitude: data.latitude,
+                        longitude: data.longitude,
+                        source: 'ip',
+                    });
+                } catch (err) {
+                    reject(err);
+                }
             },
             { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
         );
@@ -408,6 +748,16 @@ async function reverseGeocode(lat, lng) {
                             c.types.includes('administrative_area_level_1')
                         )?.long_name;
 
+                    const countryCode =
+                        components.find(c =>
+                            c.types.includes('country')
+                        )?.short_name?.toLowerCase() || null;
+
+                    const postalCode =
+                        components.find(c =>
+                            c.types.includes('postal_code')
+                        )?.long_name;
+
                     const shortAddress =
                         area && city
                             ? `${area}, ${city}`
@@ -415,7 +765,31 @@ async function reverseGeocode(lat, lng) {
                                 ? `${city}, ${state}`
                                 : results[0].formatted_address;
 
-                    resolve(shortAddress);
+                    let searchType = 'general';
+                    let searchTerm = shortAddress.split(',')[0].trim();
+                    let displayLabel = searchTerm;
+
+                    if (postalCode) {
+                        searchType = 'postal_code';
+                        searchTerm = postalCode;
+                        displayLabel = postalCode;
+                    } else if (city) {
+                        searchType = 'city';
+                        searchTerm = city;
+                        displayLabel = city;
+                    } else if (state) {
+                        searchType = 'state';
+                        searchTerm = state;
+                        displayLabel = state;
+                    }
+
+                    resolve({
+                        display: shortAddress,
+                        searchTerm,
+                        searchType,
+                        displayLabel,
+                        countryCode,
+                    });
                 }
             );
         });
@@ -533,49 +907,77 @@ async function loadNearbyStores() {
 
     try {
         showLocationLoader('Detecting location...');
-        const location = await getCurrentLocation();
+        const location = await getCurrentLocation({ allowIpFallback: false });
 
         updateLoaderMessage('Fetching address...');
         const place = await reverseGeocode(location.latitude, location.longitude);
 
-        updateLocationInput(place);
         const input = document.querySelector('input[name="location-address"]');
-        if (input && place) input.dataset.selectedSearch = place;
+        if (input) {
+            input.dataset.selectedLat = String(location.latitude);
+            input.dataset.selectedLng = String(location.longitude);
+
+            if (place) {
+                input.value = place.display;
+                applyPlaceSelection(input, {
+                    searchTerm: place.searchTerm,
+                    searchType: place.searchType,
+                    displayLabel: place.displayLabel,
+                });
+
+                if (
+                    !App.showGlobalRetailers &&
+                    place.countryCode &&
+                    App.storeCountryCode &&
+                    place.countryCode !== App.storeCountryCode
+                ) {
+                    hideLocationLoader();
+                    if (resetBtn) resetBtn.style.display = 'block';
+                    showToast(
+                        TOAST.outsideStoreCountry(App.storeCountryName || 'this store region'),
+                        'error'
+                    );
+                    App.stores = [];
+                    renderRetailers([]);
+                    updateDealerUI({ search: place.display, count: 0 });
+                    if (!App.map) await initGoogleMap();
+                    App.map?.setCenter({
+                        lat: location.latitude,
+                        lng: location.longitude,
+                    });
+                    App.map?.setZoom(10);
+                    await reinitializeMap({ showUserLocation: true, skipFitBounds: true });
+                    return;
+                }
+            } else {
+                input.dataset.selectedSearch = 'Current Location';
+            }
+        }
 
         if (resetBtn) resetBtn.style.display = 'block';
 
         updateLoaderMessage('Finding nearby stores...');
-        if (!App.stores.length) await loadRetailers();
-
-        const nearby = filterNearbyStores(App.stores);
-        hideLocationLoader();
-
-        // await reinitializeMap({ showUserLocation: true, userOnly: true });
-
-        if (!nearby.length) {
-            showToast('No retailers found', 'error');
-            App.map.setCenter({ lat: location.latitude, lng: location.longitude });
-            App.map.setZoom(12);
-            App.stores = [];
-            renderRetailers([]);
-            updateDealerUI({ count: 0 });
-            await reinitializeMap({ showUserLocation: true });
+        applyDefaultRadiusToUI();
+        const params = buildSearchParamsFromUI({ defaultRadius: true });
+        if (!params.lat || !params.lng) {
+            hideLocationLoader();
+            showToast(TOAST.locationFailed, 'error');
+            if (currentBtn) currentBtn.style.display = 'block';
             return;
         }
 
-        App.stores = nearby;
-        renderRetailers(nearby);
-        updateDealerUI({ count: nearby.length });
-        await reinitializeMap({ showUserLocation: true });
+        hideLocationLoader();
+        await loadRetailers(params, { showUserLocation: true });
 
     } catch (err) {
         console.error('loadNearbyStores error:', err);
         hideLocationLoader();
-        showToast('Unable to get your location. Please enable location services and try again.', 'error');
+        showToast(TOAST.locationFailed, 'error');
         if (currentBtn) currentBtn.style.display = 'block';
         if (resetBtn) resetBtn.style.display = 'none';
         Object.assign(UserLocation, { latitude: null, longitude: null, accuracy: null });
         clearLocationInput();
+        clearLocationSelection();
     } finally {
         isFetchingNearby = false;
     }
@@ -595,9 +997,7 @@ async function resetToInitialView() {
 
     if (input) {
         input.value = '';
-        delete input.dataset.selectedSearch;
-        delete input.dataset.selectedLat;
-        delete input.dataset.selectedLng;
+        clearLocationSelection();
     }
 
     if (list) list.innerHTML = '';
@@ -611,8 +1011,14 @@ async function resetToInitialView() {
     await loadRetailers();
     await reinitializeMap({ showUserLocation: false, userOnly: false });
 
-    App.map.setCenter({ lat: 20, lng: 78 });
-    App.map.setZoom(5);
+    if (App.map) {
+        if (App.defaultMapCenter) {
+            App.map.setCenter(App.defaultMapCenter);
+            App.map.setZoom(App.defaultMapZoom);
+        } else if (App.stores.length) {
+            fitBoundsToMarkers();
+        }
+    }
 }
 
 // API CALLS
@@ -634,36 +1040,68 @@ async function showFallbackLocation(location) {
     App.map.setZoom(10);
 }
 
-async function loadRetailers(params = {}) {
-    clearMarkers(); 
+async function loadRetailers(params = {}, { showUserLocation = false } = {}) {
     try {
+        const baseUrl = getApiBaseUrl();
         const query = new URLSearchParams();
-        ['search', 'category', 'radius', 'lat', 'lng'].forEach(k => {
-            if (params[k]) query.append(k, params[k]);
+        ['search', 'category', 'radius', 'lat', 'lng', 'searchType'].forEach(k => {
+            if (params[k] !== undefined && params[k] !== null && params[k] !== '') {
+                query.append(k, params[k]);
+            }
         });
 
-        const url = `${window.RETAILER_API_URL}/api/store/retailers?shop=${encodeURIComponent(SHOP)}&${query}`;
+        const url = `${baseUrl}/api/store/retailers?shop=${encodeURIComponent(SHOP)}&${query}`;
         const result = await fetch(url).then(r => r.json());
 
-        if (result.success && result.data.length === 0 && result.fallback_location) {
+        if (!result.success) {
+            showToast(result.error || TOAST.loadRetailersFailed, 'error');
+            return;
+        }
+
+        if (result.success && result.data.length === 0 && result.fallback_location && (params.search || params.category || params.radius)) {
+            showToast(TOAST.noRetailersFound, 'error');
             if (!App.map) await initGoogleMap();
-            App.stores = []; // ← clear stores first
+            App.stores = [];
+            hideInitialRetailersLoader();
             await showFallbackLocation(result.fallback_location);
             renderRetailers([]);
-            updateDealerUI({ count: 0 });
+            updateDealerUI({
+                search: params.searchDisplay || params.search,
+                count: 0,
+                radius: params.radiusLabel || null,
+            });
+            if (showUserLocation) {
+                await reinitializeMap({ showUserLocation: true, skipFitBounds: true });
+            }
             return;
         }
 
         const data = result.success ? (result.data || []) : [];
-        App.stores = data.filter(s => s.latitude && s.longitude); // ← set BEFORE reinitializeMap
+        if (data.length === 0 && (params.category || params.radius || params.search)) {
+            showToast(TOAST.noRetailersFound, 'error');
+        }
+        const mappable = data.filter(s => s.latitude && s.longitude);
+        App.stores = mappable;
+        hideInitialRetailersLoader();
         renderRetailers(data, params.radiusLabel || null);
-        updateDealerUI({ search: params.search, count: data.length, radius: params.radius });
-        await reinitializeMap(); // ← now uses fresh App.stores
+        updateDealerUI({
+            search: params.searchDisplay || params.search,
+            count: data.length,
+            radius: params.radiusLabel || null,
+        });
+
+        if (params.lat && params.lng) {
+            await centerMapOnSearch(params, { showUserLocation });
+            return;
+        }
+
+        await reinitializeMap({ showUserLocation, skipFitBounds: false });
 
     } catch (err) {
         console.error('loadRetailers error:', err);
-        showToast('Something went wrong while loading retailers.', 'error');
+        showToast(TOAST.loadRetailersFailed, 'error');
         App.stores = [];
+        hideInitialRetailersLoader();
         renderRetailers([]);
         updateDealerUI({ count: 0 });
     }
@@ -671,24 +1109,43 @@ async function loadRetailers(params = {}) {
 
 async function loadCategories() {
     try {
-        const url = `${window.RETAILER_API_URL}/api/store/categories?shop=${encodeURIComponent(SHOP)}`;
+        const baseUrl = getApiBaseUrl();
+        const url = `${baseUrl}/api/store/categories?shop=${encodeURIComponent(SHOP)}`;
         const result = await fetch(url).then(r => r.json());
         if (result.success) renderCategories(result.data);
-        else showToast('Unable to load categories', 'error');
+        else showToast(TOAST.loadCategoriesFailed, 'error');
     } catch {
-        showToast('Failed to load categories.', 'error');
+        showToast(TOAST.loadCategoriesFailed, 'error');
     }
 }
 
 async function loadFilterSettings() {
     try {
-        const url = `${window.RETAILER_API_URL}/api/store/settings?shop=${encodeURIComponent(SHOP)}`;
+        const baseUrl = getApiBaseUrl();
+        const url = `${baseUrl}/api/store/settings?shop=${encodeURIComponent(SHOP)}`;
         const result = await fetch(url).then(r => r.json());
         if (result.success && result.data.length > 0) {
-            document.querySelector('.right-wrap')?.classList.toggle('no-filters', !result.data[0].filter_enabled);
+            const settings = result.data[0];
+            document.querySelector('.right-wrap')?.classList.toggle('no-filters', !settings.filter_enabled);
+            App.storeCountryCode = settings.country_code
+                ? String(settings.country_code).toLowerCase()
+                : null;
+            App.storeCountryName = settings.country_name || null;
+            App.showGlobalRetailers = Boolean(settings.show_global_retailers);
+
+            if (settings.capital_latitude && settings.capital_longitude) {
+                App.defaultMapCenter = {
+                    lat: parseFloat(settings.capital_latitude),
+                    lng: parseFloat(settings.capital_longitude),
+                };
+            } else {
+                App.defaultMapCenter = null;
+            }
+
+            App.defaultMapZoom = DEFAULT_MAP_ZOOM;
         }
     } catch {
-        showToast('Unable to load filter settings.', 'error');
+        showToast(TOAST.loadSettingsFailed, 'error');
     }
 }
 
@@ -728,8 +1185,8 @@ function renderRetailers(data, radius = null) {
             <div class="icon-btn-wrap">
               ${item.website_url ? `
                 <a 
-                href="${item.website_url.startsWith('http') 
-                    ? item.website_url 
+                href="${item.website_url.startsWith('http')
+                    ? item.website_url
                     : `https://${cleanUrl(item.website_url)}`}"
                 class="icon-btn"
                 title="Visit Website"
@@ -855,6 +1312,32 @@ function cleanUrl(url) {
 }
 
 // DROPDOWNS
+async function resetFilters() {
+    const categorySpan = document.querySelector('#categoryDropdown .dropdown-btn span');
+    const radiusSpan = document.querySelector('#radiusDropdown .dropdown-btn span');
+    const searchInput = document.querySelector('input[name="location-address"]');
+    const hasLocation = Boolean(searchInput?.dataset?.selectedSearch);
+
+    if (categorySpan) {
+        categorySpan.innerText = 'Select Category';
+        categorySpan.classList.add('placeholder');
+    }
+
+    if (radiusSpan) {
+        radiusSpan.innerText = 'Radius';
+        radiusSpan.classList.add('placeholder');
+    }
+
+    if (hasLocation) {
+        const params = buildSearchParamsFromUI();
+        await loadRetailers(params, {
+            showUserLocation: UserLocation.latitude !== null,
+        });
+        return;
+    }
+
+    await resetToInitialView();
+}
 
 function initDropdowns() {
     const selects = document.querySelectorAll('#categoryDropdown, #radiusDropdown');
@@ -874,10 +1357,7 @@ function initDropdowns() {
                 if (!span) return;
 
                 const isCategory = drop.id === 'categoryDropdown';
-
-                const placeholder = isCategory
-                    ? 'Select Category'
-                    : 'Radius';
+                const placeholder = isCategory ? 'Select Category' : 'Radius';
 
                 if (span.innerText === opt.innerText) {
                     span.innerText = placeholder;
@@ -890,14 +1370,6 @@ function initDropdowns() {
                 drop.classList.remove('active');
             });
         });
-
-        // drop.querySelectorAll('.dropdown-list div').forEach(opt => {
-        //     opt.addEventListener('click', () => {
-        //         const span = btn?.querySelector('span');
-        //         if (span) { span.classList.remove('placeholder'); span.innerText = opt.innerText; }
-        //         drop.classList.remove('active');
-        //     });
-        // });
     });
 
     document.addEventListener('click', e => {
@@ -906,77 +1378,19 @@ function initDropdowns() {
         }
     });
 
-    document.querySelector('.search-container .btn-primary')?.addEventListener('click', handleSearch);
+    document.getElementById('search-btn')?.addEventListener('click', handleSearch);
+    document.getElementById('reset-filters-btn')?.addEventListener('click', resetFilters);
 }
 
 // SEARCH HANDLER
 
 async function handleSearch() {
-    const searchInput = document.querySelector('input[name="location-address"]');
-    const categorySpan = document.querySelector('#categoryDropdown .dropdown-btn span');
-    const radiusSpan = document.querySelector('#radiusDropdown .dropdown-btn span');
+    const params = buildSearchParamsFromUI();
+    if (!validateSearchParams(params)) return;
 
-    const typedValue = searchInput?.value?.trim() || '';
-    const selectedValue = searchInput?.dataset?.selectedSearch || null;
-
-    if (typedValue && !selectedValue) {
-        showToast('Please select a location from dropdown suggestions.', 'error');
-        return;
-    }
-
-    const params = {};
-    if (selectedValue) {
-        params.search = selectedValue;
-    }
-
-    const categoryValue =
-        categorySpan?.innerText?.includes('Select')
-            ? null
-            : categorySpan?.innerText;
-
-    if (categoryValue) {
-        params.category = categoryValue;
-    }
-
-    const radiusText =
-        radiusSpan?.innerText?.includes('Radius')
-            ? null
-            : radiusSpan?.innerText;
-
-    if (radiusText) {
-        params.radiusLabel = radiusText;
-    }
-
-    if (!selectedValue && !categoryValue && !radiusText) {
-        showToast('Please enter or select at least one filter.', 'error');
-        return;
-    }
-
-    if (radiusText && !selectedValue) {
-        showToast('Please select a location to use radius filter.', 'error');
-        return;
-    }
-
-    if (radiusText) {
-        try {
-            const num = parseFloat(radiusText);
-            const location = await getCurrentLocation();
-
-            params.lat = location.latitude;
-            params.lng = location.longitude;
-
-            params.radius =
-                getDistanceUnit() === 'miles'
-                    ? num * 1.60934
-                    : num;
-
-        } catch {
-            showToast('Unable to fetch current location.', 'error');
-            return;
-        }
-    }
-
-    await loadRetailers(params);
+    await loadRetailers(params, {
+        showUserLocation: UserLocation.latitude !== null,
+    });
 }
 
 // LOCATION AUTOCOMPLETE
@@ -993,10 +1407,11 @@ function setupLocationSearch() {
         const value = input.value.trim();
         const resetBtn = document.getElementById('reset-location-btn');
 
+        clearLocationSelection();
+
         if (resetBtn) resetBtn.style.display = value ? 'block' : 'none';
 
         if (!value) {
-            delete input.dataset.selectedSearch;
             if (list) list.innerHTML = '';
             dropdown.classList.remove('active');
             return;
@@ -1032,51 +1447,164 @@ function setupLocationSearch() {
 
 async function fetchSuggestions(search) {
     try {
-        const url = `${window.RETAILER_API_URL}/api/store/retailers?shop=${encodeURIComponent(SHOP)}&search=${encodeURIComponent(search)}`;
-        const result = await fetch(url).then(r => r.json());
-        if (!result.success) showToast('Unable to fetch suggestions', 'error');
-        return result.success ? (result.data || []) : [];
-    } catch {
-        showToast('Suggestion search failed.', 'error');
+        await bootstrapGoogleMaps();
+
+        return new Promise((resolve) => {
+
+            autocompleteService.getPlacePredictions(
+                {
+                    input: search,
+                    ...(App.showGlobalRetailers || !App.storeCountryCode
+                        ? {}
+                        : { componentRestrictions: { country: App.storeCountryCode } }),
+                    types: ['geocode'],
+                },
+                (predictions, status) => {
+
+                    if (
+                        status !== google.maps.places.PlacesServiceStatus.OK
+                    ) {
+                        resolve([]);
+                        return;
+                    }
+
+                    resolve(predictions || []);
+                }
+            );
+        });
+
+    } catch (err) {
+        console.error(
+            "Google Places Autocomplete Error",
+            err
+        );
+
         return [];
     }
 }
 
-function renderLocationDropdown(data, input, dropdown) {
-    const list = document.getElementById('locationDropdownList');
+async function selectPlace(prediction, input, typedValue = '') {
+
+    return new Promise((resolve) => {
+
+        placesService.getDetails(
+            {
+                placeId: prediction.place_id,
+                fields: [
+                    "name",
+                    "formatted_address",
+                    "geometry",
+                    "address_components",
+                ]
+            },
+            (place, status) => {
+
+                if (
+                    status !==
+                    google.maps.places.PlacesServiceStatus.OK
+                ) {
+                    resolve(null);
+                    return;
+                }
+
+                const lat =
+                    place.geometry.location.lat();
+
+                const lng =
+                    place.geometry.location.lng();
+
+                input.value =
+                    place.formatted_address;
+
+                const meta = resolvePlaceSearchMeta(
+                    place,
+                    typedValue || prediction.description || input.value
+                );
+
+                applyPlaceSelection(input, meta);
+
+                input.dataset.selectedLat = String(lat);
+                input.dataset.selectedLng = String(lng);
+
+                resolve({
+                    lat,
+                    lng,
+                    address: place.formatted_address,
+                    ...meta,
+                });
+            }
+        );
+    });
+}
+
+function renderLocationDropdown(
+    data,
+    input,
+    dropdown
+) {
+    const list =
+        document.getElementById(
+            "locationDropdownList"
+        );
+
     if (!list) return;
 
     if (!data.length) {
-        list.innerHTML = '<div class="no-data">No results found</div>';
+        list.innerHTML =
+            '<div class="no-data">No results found</div>';
         return;
     }
 
-    list.innerHTML = data.map((item, i) => {
-        const addr = [item.address_line1, item.address_line2, item.city, item.state, item.postal_code]
-            .filter(Boolean).join(', ');
-        return `
-      <div class="location-list-item" data-index="${i}">
-        <h5>
-          <span class="icon-wrap"><img src="${window.ASSETS.locationPin}" alt="pin"></span>
-          ${item.name}
-        </h5>
-        <p>${addr}</p>
-      </div>`;
-    }).join('');
+    list.innerHTML = data
+        .map(
+            (item, index) => `
+            <div
+                class="location-list-item"
+                data-index="${index}"
+            >
+                <h5>
+                    <span class="icon-wrap">
+                        <img
+                            src="${window.ASSETS.locationPin}"
+                            alt="pin"
+                        >
+                    </span>
+                    ${item.description}
+                </h5>
+            </div>
+        `
+        )
+        .join("");
 
-    list.onclick = e => {
-        const item = e.target.closest('.location-list-item');
-        if (!item) return;
-        e.stopPropagation();
-        clearTimeout(suggestionTimer);
-        suggestionTimer = null;
+    list.onclick = async (e) => {
 
-        const selected = data[parseInt(item.dataset.index, 10)];
-        input.value = selected.name;
-        input.dataset.selectedSearch = selected.name;
-        input.dataset.selectedLat = selected.latitude;
-        input.dataset.selectedLng = selected.longitude;
-        list.innerHTML = '';
-        dropdown.classList.remove('active');
+        const row =
+            e.target.closest(
+                ".location-list-item"
+            );
+
+        if (!row) return;
+
+        const selected =
+            data[
+            parseInt(
+                row.dataset.index,
+                10
+            )
+            ];
+
+        const typedQuery = input.value.trim();
+
+        await selectPlace(
+            selected,
+            input,
+            typedQuery
+        );
+
+        list.innerHTML = "";
+
+        dropdown.classList.remove(
+            "active"
+        );
     };
 }

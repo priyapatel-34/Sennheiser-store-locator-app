@@ -15,12 +15,12 @@ function AppContent({ pages }) {
             items={[
               {
                 label: "Retailers",
-                onClick: () => navigate("/retailers"),  // ✅ only onClick, no url
+                onClick: () => navigate("/retailers"), 
                 selected: location.pathname === "/retailers",
               },
               {
                 label: "Categories",
-                onClick: () => navigate("/categories"), // ✅ only onClick, no url
+                onClick: () => navigate("/categories"),
                 selected: location.pathname === "/categories",
               },
             ]}

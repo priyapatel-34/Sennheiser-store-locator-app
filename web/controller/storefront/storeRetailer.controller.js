@@ -1,4 +1,10 @@
 import { pool } from "../../db/db.js";
+import {
+  shouldApplyTextSearch,
+  applyGeoFilter,
+  normalizePostalCode,
+  resolveSearchType,
+} from "../../lib/retailerGeo.js";
 
 // export async function getRetailers(req, res) {
 //   try {
@@ -72,20 +78,20 @@ import { pool } from "../../db/db.js";
 //           r.opening_hours,
 //           r.notes,
 //           c.name AS country,
-   
+
 //           COALESCE(
 //             STRING_AGG(DISTINCT cat.name, ', '),
 //             ''
 //           ) AS categories
-   
+
 //         FROM retailers r
 //         JOIN countries c ON r.country_id = c.id
 //         LEFT JOIN retailer_categories rc ON r.id = rc.retailer_id
 //         LEFT JOIN categories cat ON rc.category_id = cat.id
-   
+
 //         WHERE r.store_id = $1
 //         AND r.status = 'active'
-   
+
 //         AND (
 //           $8::boolean = TRUE
 //           OR (
@@ -94,11 +100,11 @@ import { pool } from "../../db/db.js";
 //           )
 //         )
 //         AND ($3::text IS NULL OR cat.name ILIKE $3)
-   
+
 //         -- 🔥 IMPROVED SEARCH (handles +, -, spaces, exact match)
 //         AND (
 //           $4::text IS NULL OR length(trim($4)) = 0
-   
+
 //           -- ✅ Normalize + and - → space
 //           OR REPLACE(REPLACE(
 //             CONCAT_WS(' ',
@@ -112,7 +118,7 @@ import { pool } from "../../db/db.js";
 //             '+', ' '
 //           ), '-', ' ')
 //           ILIKE '%' || REPLACE(REPLACE($4, '+', ' '), '-', ' ') || '%'
-   
+
 //           -- ✅ Remove + and - completely
 //           OR REPLACE(REPLACE(
 //             CONCAT_WS(' ',
@@ -126,10 +132,10 @@ import { pool } from "../../db/db.js";
 //             '+', ''
 //           ), '-', '')
 //           ILIKE '%' || REPLACE(REPLACE($4, '+', ''), '-', '') || '%'
-   
+
 //           -- ✅ Exact postal code match (VERY IMPORTANT)
 //           OR r.postal_code ILIKE '%' || $4 || '%'
-   
+
 //           -- ✅ Fallback (original string match)
 //           OR CONCAT_WS(' ',
 //             r.name,
@@ -140,7 +146,7 @@ import { pool } from "../../db/db.js";
 //             r.postal_code
 //           ) ILIKE '%' || $4 || '%'
 //         )
-   
+
 //         -- 📍 RADIUS FILTER
 //         AND (
 //           $7::float IS NULL OR
@@ -152,7 +158,7 @@ import { pool } from "../../db/db.js";
 //             )
 //           ) <= $7
 //         )
-   
+
 //         GROUP BY
 //           r.id,
 //           r.store_id,
@@ -173,7 +179,7 @@ import { pool } from "../../db/db.js";
 //           r.opening_hours,
 //           r.notes,
 //           c.name
-   
+
 //         ORDER BY r.id DESC;
 //       `;
 
@@ -639,44 +645,43 @@ import { pool } from "../../db/db.js";
 export async function getRetailers(req, res) {
   try {
     const { shop } = req.query;
-    
-        if (!shop) {
-          return res.status(400).json({
-            error: "shop is required",
-          });
-        }
-    
-        const storeResult = await pool.query(
-          `
-          SELECT
-      s.id,
-      s.country_id,
-      c.name AS country_name,
-      c.code,
-      c.capital_name,
-      c.capital_latitude,
-      c.capital_longitude
-    FROM stores s
-    LEFT JOIN countries c
-      ON s.country_id = c.id
-    WHERE s.shop_domain = $1
-    AND s.is_installed = true
-    LIMIT 1
-          `,
-          [shop]
-        );
-    
-        if (!storeResult.rows.length) {
-          return res.status(404).json({
-            error: `No store found for domain: ${shop}`,
-          });
-        }
-    
-        const storeData = storeResult.rows[0];
-    
-    const store_id = 3;
-  
-    // GET STORE SETTINGS
+
+    if (!shop) {
+      return res.status(400).json({
+        success: false,
+        error: "shop is required",
+      });
+    }
+
+    const storeResult = await pool.query(
+      `
+      SELECT
+        s.id,
+        s.country_id,
+        c.name AS country_name,
+        c.code AS country_code,
+        c.capital_latitude,
+        c.capital_longitude
+      FROM stores s
+      LEFT JOIN countries c
+        ON s.country_id = c.id
+      WHERE s.shop_domain = $1
+        AND s.is_installed = true
+      LIMIT 1
+      `,
+      [shop]
+    );
+
+    if (!storeResult.rows.length) {
+      return res.status(404).json({
+        success: false,
+        error: `No store found for domain: ${shop}`,
+      });
+    }
+
+    const storeData = storeResult.rows[0];
+    const store_id = storeData.id;
+
     const settingsResult = await pool.query(
       `
       SELECT
@@ -692,81 +697,117 @@ export async function getRetailers(req, res) {
     );
 
     const settings = settingsResult.rows[0];
-
     const storeCountryId = settings?.country_id;
+    const showGlobalRetailers = settings?.show_global_retailers ?? false;
 
-    const showGlobalRetailers =
-      settings?.show_global_retailers ?? false;
-
-    const { country, category, search } = req.query;
+    const { country, category, search, lat, lng, radius, searchType } = req.query;
 
     const cleanSearch = search
       ? search.trim().replace(/\s+/g, " ")
       : null;
 
-    // DYNAMIC WHERE CONDITIONS
-    let whereConditions = [
-      `r.store_id = $1`,
-      `r.status = 'active'`
-    ];
+    const searchLat = lat ? parseFloat(lat) : null;
+    const searchLng = lng ? parseFloat(lng) : null;
+    const radiusKm = radius ? parseFloat(radius) : null;
+    const useGeoSearch =
+      searchLat !== null &&
+      !Number.isNaN(searchLat) &&
+      searchLng !== null &&
+      !Number.isNaN(searchLng);
 
+    let whereConditions = [`r.store_id = $1`, `r.status = 'active'`];
     let values = [store_id];
-
     let index = 2;
 
-    // COUNTRY FILTER WHEN GLOBAL = FALSE
-    if (!showGlobalRetailers) {
-      whereConditions.push(
-        `r.country_id = $${index}`
-      );
-
+    if (!showGlobalRetailers && storeCountryId) {
+      whereConditions.push(`r.country_id = $${index}`);
       values.push(storeCountryId);
-
       index++;
     }
 
-    // COUNTRY SEARCH FILTER
     if (country) {
-      whereConditions.push(
-        `c.name ILIKE $${index}`
-      );
-
+      whereConditions.push(`c.name ILIKE $${index}`);
       values.push(`%${country}%`);
-
       index++;
     }
 
-    // CATEGORY FILTER
     if (category) {
-      whereConditions.push(
-        `cat.name ILIKE $${index}`
+      whereConditions.push(`cat.name ILIKE $${index}`);
+      values.push(`%${category}%`);
+      index++;
+    }
+
+    const applyTextSearch = shouldApplyTextSearch(cleanSearch);
+
+    if (applyTextSearch) {
+      const effectiveSearchType = resolveSearchType(
+        cleanSearch,
+        searchType,
+        storeData.country_name
       );
 
-      values.push(`%${category}%`);
+      if (effectiveSearchType === "postal_code") {
+        const normalizedPin = normalizePostalCode(cleanSearch);
+        whereConditions.push(`
+          REPLACE(REPLACE(COALESCE(r.postal_code, ''), ' ', ''), '-', '')
+          ILIKE $${index}
+        `);
+        values.push(`${normalizedPin}%`);
+        index++;
+      } else if (effectiveSearchType === "country") {
+        whereConditions.push(`c.name ILIKE $${index}`);
+        values.push(`%${cleanSearch}%`);
+        index++;
+      } else if (effectiveSearchType === "state") {
+        whereConditions.push(`r.state ILIKE $${index}`);
+        values.push(`%${cleanSearch}%`);
+        index++;
+      } else if (effectiveSearchType === "city") {
+        whereConditions.push(`(
+          r.city ILIKE $${index}
+          OR r.address_line1 ILIKE $${index}
+          OR r.address_line2 ILIKE $${index}
+        )`);
+        values.push(`%${cleanSearch}%`);
+        index++;
+      } else {
+        const parts = cleanSearch
+          .split(",")
+          .map((p) => p.trim())
+          .filter(Boolean);
 
-      index++;
+        const searchConditions = [];
+
+        parts.forEach((part) => {
+          if (normalizePostalCode(part).match(/^\d{4,10}$/)) {
+            searchConditions.push(`
+              REPLACE(REPLACE(COALESCE(r.postal_code, ''), ' ', ''), '-', '')
+              ILIKE $${index}
+            `);
+            values.push(`${normalizePostalCode(part)}%`);
+          } else {
+            searchConditions.push(`
+              (
+                r.name ILIKE $${index}
+                OR r.address_line1 ILIKE $${index}
+                OR r.address_line2 ILIKE $${index}
+                OR r.city ILIKE $${index}
+                OR r.state ILIKE $${index}
+                OR r.postal_code ILIKE $${index}
+                OR c.name ILIKE $${index}
+              )
+            `);
+            values.push(`%${part}%`);
+          }
+          index++;
+        });
+
+        if (searchConditions.length) {
+          whereConditions.push(`(${searchConditions.join(" OR ")})`);
+        }
+      }
     }
 
-    // SEARCH FILTER
-    if (cleanSearch) {
-      whereConditions.push(`
-        CONCAT_WS(
-          ' ',
-          r.name,
-          r.address_line1,
-          r.address_line2,
-          r.city,
-          r.state,
-          r.postal_code
-        ) ILIKE $${index}
-      `);
-
-      values.push(`%${cleanSearch}%`);
-
-      index++;
-    }
-
-    // FINAL QUERY
     const query = `
       SELECT
         r.id,
@@ -789,43 +830,53 @@ export async function getRetailers(req, res) {
         r.opening_hours,
         r.notes,
         c.name AS country,
-
         COALESCE(
           STRING_AGG(DISTINCT cat.name, ', '),
           ''
         ) AS categories
-
       FROM retailers r
-
       JOIN countries c
         ON r.country_id = c.id
-
       LEFT JOIN retailer_categories rc
         ON r.id = rc.retailer_id
-
       LEFT JOIN categories cat
         ON rc.category_id = cat.id
-
       WHERE ${whereConditions.join(" AND ")}
-
       GROUP BY
         r.id,
         c.name
-
       ORDER BY r.id DESC
     `;
 
-    const result = await pool.query(
-      query,
-      values
-    );
+    const result = await pool.query(query, values);
+    let retailers = result.rows;
+
+    if (useGeoSearch) {
+      retailers = applyGeoFilter(
+        retailers,
+        searchLat,
+        searchLng,
+        radiusKm
+      );
+    }
+
+    if (retailers.length === 0 && useGeoSearch) {
+      return res.json({
+        count: 0,
+        data: [],
+        message: "No Retailers Found",
+        fallback_location: {
+          lat: searchLat,
+          lng: searchLng,
+        },
+      });
+    }
 
     return res.json({
       success: true,
-      count: result.rows.length,
-      data: result.rows,
+      count: retailers.length,
+      data: retailers,
     });
-
   } catch (err) {
     console.error(
       "❌ getRetailers error:",

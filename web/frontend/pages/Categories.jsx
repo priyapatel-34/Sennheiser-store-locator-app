@@ -18,6 +18,7 @@ import {
     useIndexResourceState,
     Spinner
 } from "@shopify/polaris";
+import CommonToast from "../components/Toast.jsx";
 
 const fields = ["category_id", "name", "status"];
 
@@ -43,7 +44,16 @@ const Categories = () => {
     const [isCreating, setIsCreating] = useState(false);
     const [errors, setErrors] = useState({});
     const [searchValue, setSearchValue] = useState("");
+    const [toast, setToast] = useState({ active: false, message: "", error: false });
     const pageSize = 10;
+
+    const showToast = useCallback((message, isError = false) => {
+        setToast({
+            active: true,
+            message: typeof message === "string" ? message : "Something went wrong",
+            error: isError,
+        });
+    }, []);
 
     const validateCategory = () => {
         const newErrors = {};
@@ -67,16 +77,19 @@ const Categories = () => {
             const res = await fetch(`/app/api/categories?${params.toString()}`);
             const data = await res.json();
 
-            if (data.success) setCategories(data.data);
-            setCategories(data.data || []);
+            if (data.success) {
+                setCategories(data.data || []);
+            } else {
+                showToast(data.error || data.message || "Failed to fetch categories", true);
+                setCategories([]);
+            }
         } catch (err) {
-            console.error("Fetch Categories Error:", err);
-            showToast(err, true);
+            showToast("Failed to fetch categories", true);
             setCategories([]);
         } finally {
             setLoading(false);
         }
-    }, [searchValue]);
+    }, [searchValue, showToast]);
 
 
     useEffect(() => {
@@ -152,22 +165,23 @@ const Categories = () => {
     const saveCategory = async () => {
         if (!editingCategory) return;
 
-        // ✅ VALIDATION CHECK
         if (!validateCategory()) return;
 
         try {
             if (isCreating) {
                 await createCategory(editingCategory);
+                showToast("Category created successfully");
             } else {
                 await updateCategory(editingCategory);
+                showToast("Category updated successfully");
             }
 
             await fetchCategories();
             closeCategoryModal();
-            setErrors({}); // clear errors after success
+            setErrors({});
 
         } catch (err) {
-            console.error(err);
+            showToast(err.message || "Failed to save category", true);
         }
     };
 
@@ -189,9 +203,11 @@ const Categories = () => {
             await fetchCategories();
             setDeleteContext(null);
             handleSelectionChange([]);
+            showToast("Category deleted successfully");
 
         } catch (err) {
             console.error("Delete Category Error:", err);
+            showToast("Failed to delete category", true);
         } finally {
             setIsDeleting(false);
         }
@@ -470,6 +486,13 @@ const Categories = () => {
                     )}
                 </Modal.Section>
             </Modal>
+
+            <CommonToast
+                active={toast.active}
+                message={toast.message}
+                error={toast.error}
+                onDismiss={() => setToast((current) => ({ ...current, active: false }))}
+            />
         </Page>
     );
 };
