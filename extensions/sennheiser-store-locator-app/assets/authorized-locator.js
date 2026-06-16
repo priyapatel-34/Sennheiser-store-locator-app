@@ -35,7 +35,7 @@ const TOAST = {
     loadRetailersFailed: 'Unable to load dealers. Please try again.',
     loadCategoriesFailed: 'Unable to load categories.',
     loadSettingsFailed: 'Unable to load store locator settings.',
-    noRetailersFound: 'No retailers found matching the selected filters.',
+    noRetailersFound: 'No retailers found in this area.',
     outsideStoreCountry: (country) =>
         `You appear to be outside ${country}. Search for a location in ${country} or reset to browse all dealers.`,
 };
@@ -685,8 +685,14 @@ async function centerMapOnSearch(params, { showUserLocation = false } = {}) {
         App.map.setZoom(getMapZoomForRadius(parseFloat(params.radius)));
     } else if (App.stores.length) {
         fitBoundsToMarkers();
+        if (!showUserLocation) {
+            await placeSearchLocationMarker(center.lat, center.lng);
+        }
     } else {
-        App.map.setZoom(10);
+        App.map.setZoom(12);
+        if (!showUserLocation) {
+            await placeSearchLocationMarker(center.lat, center.lng);
+        }
     }
 
     if (showUserLocation) {
@@ -695,9 +701,9 @@ async function centerMapOnSearch(params, { showUserLocation = false } = {}) {
                 latitude: center.lat,
                 longitude: center.lng,
             });
-            await placeUserLocationMarker();
         }
-    } else {
+        await placeUserLocationMarker();
+    } else if (App.stores.length && params.radius) {
         await placeSearchLocationMarker(center.lat, center.lng);
     }
 }

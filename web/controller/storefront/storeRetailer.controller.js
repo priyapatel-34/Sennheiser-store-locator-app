@@ -1,6 +1,7 @@
 import { pool } from "../../db/db.js";
 import {
   shouldApplyTextSearch,
+  shouldSkipTextSearchForRadiusGeo,
   applyGeoFilter,
   normalizePostalCode,
   resolveSearchType,
@@ -737,8 +738,13 @@ export async function getRetailers(req, res) {
       index++;
     }
 
+    const useRadiusGeoFilter = shouldSkipTextSearchForRadiusGeo(
+      useGeoSearch,
+      radiusKm
+    );
+
     const applyTextSearch =
-      shouldApplyTextSearch(cleanSearch) && !useGeoSearch;
+      shouldApplyTextSearch(cleanSearch) && !useRadiusGeoFilter;
 
     if (applyTextSearch) {
       const effectiveSearchType = resolveSearchType(
@@ -852,16 +858,30 @@ export async function getRetailers(req, res) {
     const result = await pool.query(query, values);
     let retailers = result.rows;
 
-    if (useGeoSearch) {
+    if (useRadiusGeoFilter) {
       retailers = applyGeoFilter(
         retailers,
         searchLat,
         searchLng,
         radiusKm
       );
+    } else if (useGeoSearch) {
+      retailers = applyGeoFilter(
+        retailers,
+        searchLat,
+        searchLng,
+        null
+      );
     }
 
-    if (retailers.length === 0 && useGeoSearch) {
+    const hasActiveSearch =
+      applyTextSearch || category || useRadiusGeoFilter;
+
+    if (
+      retailers.length === 0 &&
+      useGeoSearch &&
+      hasActiveSearch
+    ) {
       return res.json({
         success: true,
         count: 0,

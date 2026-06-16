@@ -38,6 +38,14 @@ export function shouldApplyTextSearch(cleanSearch) {
   return Boolean(cleanSearch && cleanSearch.trim());
 }
 
+export function shouldSkipTextSearchForRadiusGeo(useGeoSearch, radiusKm) {
+  return (
+    useGeoSearch &&
+    radiusKm !== null &&
+    !Number.isNaN(radiusKm)
+  );
+}
+
 export function applyGeoFilter(retailers, searchLat, searchLng, radiusKm) {
   const withoutCoords = retailers.filter(
     (retailer) => !retailer.latitude || !retailer.longitude
