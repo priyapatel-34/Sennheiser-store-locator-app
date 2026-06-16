@@ -193,12 +193,36 @@ async function placeStoreMarkers(stores) {
         });
 }
 
+const CURRENT_LOCATION_ICON = {
+    width: 48,
+    height: 48,
+    anchorX: 24,
+    anchorY: 24,
+};
+
+const SEARCH_LOCATION_ICON = {
+    width: 40,
+    height: 53,
+    anchorX: 20,
+    anchorY: 53,
+};
+
 function getCurrentLocationIconUrl() {
-    return window.ASSETS?.currentLocation || window.ASSETS?.locationPin;
+    return window.ASSETS?.currentLocation || null;
 }
 
 function getSearchLocationIconUrl() {
-    return window.ASSETS?.locationPin || window.ASSETS?.location;
+    return window.ASSETS?.searchLocationPin || window.ASSETS?.locationPin || null;
+}
+
+function buildMapIcon(url, size) {
+    if (!url) return null;
+
+    return {
+        url,
+        scaledSize: new google.maps.Size(size.width, size.height),
+        anchor: new google.maps.Point(size.anchorX, size.anchorY),
+    };
 }
 
 async function placeUserLocationMarker() {
@@ -211,8 +235,8 @@ async function placeUserLocationMarker() {
         userLocationMarker = null;
     }
 
-    const iconUrl = getCurrentLocationIconUrl();
-    if (!iconUrl) return;
+    const icon = buildMapIcon(getCurrentLocationIconUrl(), CURRENT_LOCATION_ICON);
+    if (!icon) return;
 
     userLocationMarker = new google.maps.Marker({
         map: App.map,
@@ -222,11 +246,7 @@ async function placeUserLocationMarker() {
         },
         title: 'Your Current Location',
         zIndex: 9999,
-        icon: {
-            url: iconUrl,
-            scaledSize: new google.maps.Size(40, 40),
-            anchor: new google.maps.Point(20, 20),
-        },
+        icon,
     });
 }
 
@@ -245,19 +265,15 @@ async function placeSearchLocationMarker(lat, lng) {
         searchLocationMarker = null;
     }
 
-    const iconUrl = getSearchLocationIconUrl();
-    if (!iconUrl) return;
+    const icon = buildMapIcon(getSearchLocationIconUrl(), SEARCH_LOCATION_ICON);
+    if (!icon) return;
 
     searchLocationMarker = new google.maps.Marker({
         map: App.map,
         position,
         title: 'Search Location',
         zIndex: 9998,
-        icon: {
-            url: iconUrl,
-            scaledSize: new google.maps.Size(36, 36),
-            anchor: new google.maps.Point(18, 36),
-        },
+        icon,
     });
 }
 
