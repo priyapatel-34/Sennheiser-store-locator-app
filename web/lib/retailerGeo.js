@@ -63,6 +63,8 @@ export function applyGeoFilter(retailers, searchLat, searchLng, radiusKm) {
     withCoords = withCoords.filter(
       (retailer) => retailer.distance <= radiusKm
     );
+    withCoords.sort((a, b) => a.distance - b.distance);
+    return withCoords;
   }
 
   withCoords.sort((a, b) => a.distance - b.distance);

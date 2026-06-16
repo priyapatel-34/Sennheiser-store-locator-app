@@ -17,6 +17,7 @@ const App = {
 const SHOP = window.SHOP_DOMAIN;
 let sharedInfoWindow = null;
 let userLocationMarker = null;
+let searchLocationMarker = null;
 let isFetchingNearby = false;
 let suggestionTimer = null;
 let autocompleteService = null;
@@ -192,27 +193,71 @@ async function placeStoreMarkers(stores) {
         });
 }
 
+function getCurrentLocationIconUrl() {
+    return window.ASSETS?.currentLocation || window.ASSETS?.locationPin;
+}
+
+function getSearchLocationIconUrl() {
+    return window.ASSETS?.locationPin || window.ASSETS?.location;
+}
+
 async function placeUserLocationMarker() {
-    if (!App.map || !UserLocation.latitude) return;
+    if (!App.map || UserLocation.latitude == null || UserLocation.longitude == null) {
+        return;
+    }
 
     if (userLocationMarker) {
         userLocationMarker.setMap(null);
         userLocationMarker = null;
     }
 
+    const iconUrl = getCurrentLocationIconUrl();
+    if (!iconUrl) return;
+
     userLocationMarker = new google.maps.Marker({
         map: App.map,
         position: {
             lat: UserLocation.latitude,
-            lng: UserLocation.longitude
+            lng: UserLocation.longitude,
         },
         title: 'Your Current Location',
         zIndex: 9999,
         icon: {
-            url: window.ASSETS.currentLocation,
+            url: iconUrl,
             scaledSize: new google.maps.Size(40, 40),
-            anchor: new google.maps.Point(20, 20)
-        }
+            anchor: new google.maps.Point(20, 20),
+        },
+    });
+}
+
+async function placeSearchLocationMarker(lat, lng) {
+    if (!App.map || lat == null || lng == null) return;
+
+    const position = {
+        lat: parseFloat(lat),
+        lng: parseFloat(lng),
+    };
+
+    if (isNaN(position.lat) || isNaN(position.lng)) return;
+
+    if (searchLocationMarker) {
+        searchLocationMarker.setMap(null);
+        searchLocationMarker = null;
+    }
+
+    const iconUrl = getSearchLocationIconUrl();
+    if (!iconUrl) return;
+
+    searchLocationMarker = new google.maps.Marker({
+        map: App.map,
+        position,
+        title: 'Search Location',
+        zIndex: 9998,
+        icon: {
+            url: iconUrl,
+            scaledSize: new google.maps.Size(36, 36),
+            anchor: new google.maps.Point(18, 36),
+        },
     });
 }
 
@@ -236,6 +281,11 @@ function clearMarkers() {
     if (userLocationMarker) {
         userLocationMarker.setMap(null);
         userLocationMarker = null;
+    }
+
+    if (searchLocationMarker) {
+        searchLocationMarker.setMap(null);
+        searchLocationMarker = null;
     }
 }
 
@@ -638,6 +688,18 @@ async function centerMapOnSearch(params, { showUserLocation = false } = {}) {
     } else {
         App.map.setZoom(10);
     }
+
+    if (showUserLocation) {
+        if (UserLocation.latitude == null || UserLocation.longitude == null) {
+            Object.assign(UserLocation, {
+                latitude: center.lat,
+                longitude: center.lng,
+            });
+            await placeUserLocationMarker();
+        }
+    } else {
+        await placeSearchLocationMarker(center.lat, center.lng);
+    }
 }
 
 // RADIUS DROPDOWN
@@ -908,6 +970,11 @@ async function loadNearbyStores() {
     try {
         showLocationLoader('Detecting location...');
         const location = await getCurrentLocation({ allowIpFallback: false });
+        Object.assign(UserLocation, {
+            latitude: location.latitude,
+            longitude: location.longitude,
+            accuracy: location.accuracy ?? null,
+        });
 
         updateLoaderMessage('Fetching address...');
         const place = await reverseGeocode(location.latitude, location.longitude);
@@ -1023,12 +1090,11 @@ async function resetToInitialView() {
 
 // API CALLS
 
-async function showFallbackLocation(location) {
+async function showFallbackLocation(location, { showUserLocation = false } = {}) {
     if (!location) return;
     if (!App.map) await initGoogleMap();
     if (!App.map) return;
 
-    clearMarkers();
     const position = { lat: parseFloat(location.lat), lng: parseFloat(location.lng) };
 
     if (isNaN(position.lat) || isNaN(position.lng)) {
@@ -1038,6 +1104,12 @@ async function showFallbackLocation(location) {
 
     App.map.setCenter(position);
     App.map.setZoom(10);
+
+    if (showUserLocation) {
+        await placeUserLocationMarker();
+    } else {
+        await placeSearchLocationMarker(position.lat, position.lng);
+    }
 }
 
 async function loadRetailers(params = {}, { showUserLocation = false } = {}) {
@@ -1053,33 +1125,38 @@ async function loadRetailers(params = {}, { showUserLocation = false } = {}) {
         const url = `${baseUrl}/api/store/retailers?shop=${encodeURIComponent(SHOP)}&${query}`;
         const result = await fetch(url).then(r => r.json());
 
-        if (!result.success) {
+        if (result.success === false) {
             showToast(result.error || TOAST.loadRetailersFailed, 'error');
             return;
         }
 
-        if (result.success && result.data.length === 0 && result.fallback_location && (params.search || params.category || params.radius)) {
+        const data = result.data || [];
+        const hasActiveSearch = params.search || params.category || params.radius;
+
+        if (data.length === 0 && hasActiveSearch) {
             showToast(TOAST.noRetailersFound, 'error');
             if (!App.map) await initGoogleMap();
             App.stores = [];
             hideInitialRetailersLoader();
-            await showFallbackLocation(result.fallback_location);
             renderRetailers([]);
             updateDealerUI({
                 search: params.searchDisplay || params.search,
                 count: 0,
                 radius: params.radiusLabel || null,
             });
-            if (showUserLocation) {
-                await reinitializeMap({ showUserLocation: true, skipFitBounds: true });
+
+            const fallback = result.fallback_location;
+            if (fallback?.lat != null && fallback?.lng != null) {
+                await reinitializeMap({ showUserLocation, skipFitBounds: true });
+                await showFallbackLocation(fallback, { showUserLocation });
+            } else if (params.lat && params.lng) {
+                await centerMapOnSearch(params, { showUserLocation });
+            } else {
+                await reinitializeMap({ showUserLocation, skipFitBounds: true });
             }
             return;
         }
 
-        const data = result.success ? (result.data || []) : [];
-        if (data.length === 0 && (params.category || params.radius || params.search)) {
-            showToast(TOAST.noRetailersFound, 'error');
-        }
         const mappable = data.filter(s => s.latitude && s.longitude);
         App.stores = mappable;
         hideInitialRetailersLoader();

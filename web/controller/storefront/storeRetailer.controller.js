@@ -737,7 +737,8 @@ export async function getRetailers(req, res) {
       index++;
     }
 
-    const applyTextSearch = shouldApplyTextSearch(cleanSearch);
+    const applyTextSearch =
+      shouldApplyTextSearch(cleanSearch) && !useGeoSearch;
 
     if (applyTextSearch) {
       const effectiveSearchType = resolveSearchType(
@@ -862,6 +863,7 @@ export async function getRetailers(req, res) {
 
     if (retailers.length === 0 && useGeoSearch) {
       return res.json({
+        success: true,
         count: 0,
         data: [],
         message: "No Retailers Found",
