@@ -548,7 +548,7 @@ const RetailersManager = () => {
     ...countries.map((c) => ({ label: c.name, value: c.name })),
   ], [countries]);
 
-  const { selectedResources, allResourcesSelected, handleSelectionChange } =
+  const { selectedResources, allResourcesSelected, handleSelectionChange, clearSelection } =
     useIndexResourceState(paginatedRetailers);
 
   // ── Data fetchers ──
@@ -570,14 +570,17 @@ const RetailersManager = () => {
       if (searchValue.trim()) params.append("search", searchValue);
       const res = await fetch(`/app/api/retailers?${params}`);
       const data = await handleApiResponse(res, showToast);
-      if (data) setRetailers(data.data);
+      if (data) {
+        setRetailers((data.data || []).map((r) => ({ ...r, id: String(r.id) })));
+      }
+      clearSelection();
     } catch {
       showToast("Failed to fetch retailers", true);
     } finally {
       setLoading(false);
       setInitialLoading(false);
     }
-  }, [searchValue, showToast]);
+  }, [searchValue, showToast, clearSelection]);
 
   useEffect(() => { fetchData("/app/api/categories", setAllCategories, "Failed to fetch categories"); }, [fetchData]);
   useEffect(() => { fetchData("/app/api/countries", setCountries, "Failed to fetch countries"); }, [fetchData]);
@@ -651,6 +654,7 @@ const RetailersManager = () => {
       const data = await handleApiResponse(res, showToast, "Retailer created successfully");
       if (!data) return;
       await fetchRetailers();
+      clearSelection();
       setIsCreateOpen(false);
       setNewRetailer(EMPTY_RETAILER);
       setNewRetailerErrors({});
@@ -674,6 +678,7 @@ const RetailersManager = () => {
       const data = await handleApiResponse(res, showToast, "Retailer updated successfully");
       if (!data) return;
       await fetchRetailers();
+      clearSelection();
       setEditingRetailer(null);
       setEditRetailerErrors({});
     } catch {
@@ -698,7 +703,7 @@ const RetailersManager = () => {
       }
       await fetchRetailers();
       setDeleteContext(null);
-      handleSelectionChange([]);
+      clearSelection();
     } catch {
       showToast("Failed to delete retailer", true);
     } finally {
@@ -720,13 +725,23 @@ const RetailersManager = () => {
         : [],
     });
 
+  const goToPreviousPage = () => {
+    setPage((p) => Math.max(1, p - 1));
+    clearSelection();
+  };
+
+  const goToNextPage = () => {
+    setPage((p) => Math.min(totalPages, p + 1));
+    clearSelection();
+  };
+
   // ── Row markup ──
 
   const rowMarkup = paginatedRetailers.map((r, index) => (
     <IndexTable.Row
       key={r.id}
-      id={String(r.id)}
-      selected={selectedResources.includes(r.id) || selectedResources.includes(String(r.id))}
+      id={r.id}
+      selected={selectedResources.includes(r.id)}
       position={index}
     >
       <IndexTable.Cell><Text fontWeight="semibold">{r.id}</Text></IndexTable.Cell>
@@ -811,7 +826,7 @@ const RetailersManager = () => {
 
           <InlineStack gap="200">
             <Button
-              onClick={() => handleSelectionChange([])}
+              onClick={clearSelection}
             >
               Clear Selection
             </Button>
@@ -871,9 +886,9 @@ const RetailersManager = () => {
                   <Text as="p" tone="subdued">Page {page} of {totalPages}</Text>
                   <Pagination
                     hasPrevious={page > 1}
-                    onPrevious={() => setPage((p) => Math.max(1, p - 1))}
+                    onPrevious={goToPreviousPage}
                     hasNext={page < totalPages}
-                    onNext={() => setPage((p) => Math.min(totalPages, p + 1))}
+                    onNext={goToNextPage}
                   />
                 </InlineStack>
               </Box>
