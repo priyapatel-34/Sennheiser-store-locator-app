@@ -1,4 +1,5 @@
 import { pool } from "../../db/db.js";
+import { ensureStoreRegistered } from "../../lib/registerStore.js";
 import {
   shouldApplyTextSearch,
   shouldSkipTextSearchForRadiusGeo,
@@ -652,6 +653,12 @@ export async function getRetailers(req, res) {
         success: false,
         error: "shop is required",
       });
+    }
+
+    try {
+      await ensureStoreRegistered(shop);
+    } catch (err) {
+      console.error("Failed to ensure store registration for retailers:", shop, err);
     }
 
     const storeResult = await pool.query(

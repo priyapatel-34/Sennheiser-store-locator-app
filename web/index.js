@@ -15,6 +15,7 @@ import countriesRoutes from "./routes/admin/countries.routes.js";
 import storeRetailersRoutes from "./routes/storefront/retailer.routes.js";
 import storeCategoriesRoutes from "./routes/storefront/categories.routes.js";
 import storeSettingsRoutes from "./routes/storefront/settings.routes.js";
+import { registerInstalledStore } from "./lib/registerStore.js";
 import { dirname } from "path";
 import { fileURLToPath } from "url";
 
@@ -51,6 +52,19 @@ app.get(shopify.config.auth.path, shopify.auth.begin());
 app.get(
   shopify.config.auth.callbackPath,
   shopify.auth.callback(),
+  async (_req, res, next) => {
+    try {
+      const session = res.locals.shopify?.session;
+      if (!session?.shop) {
+        console.error("OAuth callback completed without a shop session");
+      } else {
+        await registerInstalledStore(session);
+      }
+    } catch (err) {
+      console.error("Failed to save store during installation:", err);
+    }
+    return next();
+  },
   shopify.redirectToShopifyOrAppRoot()
 );
 

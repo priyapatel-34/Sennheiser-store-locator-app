@@ -158,7 +158,7 @@ const validateRetailerData = (data) => {
 
 const downloadCSVTemplate = () => {
   const exampleRow = [
-    "Sample Store", "India", "offline", "active", "123 Main St",
+    "Sample Store", "offline", "active", "123 Main St",
     "Suite 4", "Mumbai", "Maharashtra", "India", "400001",
     "19.076090", "72.877426", "9876543210", "store@example.com",
     "https://example.com", "https://maps.google.com/?q=...",
@@ -508,6 +508,34 @@ const ImportCSVModal = ({ open, onClose, onSuccess }) => {
   );
 };
 
+const ExportCSVModal = ({ open, onClose, retailers }) => {
+  const csvContent = useMemo(() => {
+    if (!retailers || retailers.length === 0) return "";
+    const rows = retailers.map((r) => [
+      r.name || "",
+      r.retailer_type || "",
+      r.status || "",
+      r.address_line1 || "",
+      r.address_line2 || "",
+      r.city || "",
+      r.state || "",
+      r.country || "",
+      r.postal_code || "",
+      r.latitude || "",
+      r.longitude || "",
+      r.phone || "",
+      r.email || "",
+      r.website_url || "",
+      r.google_maps_link || "",
+      r.opening_hours || "",
+      r.categories || "",
+      r.notes || "",
+    ]);
+    return [CSV_TEMPLATE_HEADERS, ...rows].map((row) => row.map((cell) => `"${String(cell).replace(/"/g, '""')}"`).join(",")).join("\n");
+  }, [retailers]);
+}
+
+
 // ─── Retailers Manager (Main) ─────────────────────────────────────────────────
 
 const RetailersManager = () => {
@@ -521,6 +549,7 @@ const RetailersManager = () => {
   const [isUpdatingSettings, setIsUpdatingSettings] = useState(false);
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [isImportOpen, setIsImportOpen] = useState(false);
+  const [isExportOpen, setIsExportOpen] = useState(false);
   const [editingRetailer, setEditingRetailer] = useState(null);
   const [deleteContext, setDeleteContext] = useState(null);
   const [newRetailer, setNewRetailer] = useState(EMPTY_RETAILER);
@@ -898,6 +927,7 @@ const RetailersManager = () => {
       </BlockStack>
 
       {/* Modals */}
+      <ExportCSVModal open={isExportOpen} onClose={() => setIsExportOpen(false)} retailers={retailers} />
       <ImportCSVModal open={isImportOpen} onClose={() => setIsImportOpen(false)} onSuccess={fetchRetailers} />
 
       <Modal

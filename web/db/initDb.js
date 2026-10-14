@@ -1,4 +1,5 @@
 import { pool } from "./db.js";
+import { CAPITAL_BACKFILL } from "../lib/countryMatch.js";
 
 export async function initDb() {
   try {
@@ -123,6 +124,15 @@ export async function initDb() {
       ON stores(country_id);
     `);
 
+    try {
+      await pool.query(`
+        CREATE UNIQUE INDEX IF NOT EXISTS stores_shop_domain_key
+        ON stores (shop_domain);
+      `);
+    } catch (err) {
+      console.error("Could not ensure unique shop_domain index:", err.message);
+    }
+
     // DEFAULT COUNTRIES
     await pool.query(`
       INSERT INTO countries (
@@ -169,6 +179,42 @@ export async function initDb() {
       ON CONFLICT (code)
       DO NOTHING;
     `);
+
+    await pool.query(`
+      INSERT INTO countries (
+        name, code, capital_name, capital_latitude, capital_longitude
+      )
+      SELECT 'United Kingdom', 'GB', 'London', 51.5074000, -0.1278000
+      WHERE NOT EXISTS (
+        SELECT 1 FROM countries
+        WHERE UPPER(code) IN ('GB', 'UK')
+           OR LOWER(name) IN ('united kingdom', 'uk', 'great britain')
+      )
+      ON CONFLICT (code) DO NOTHING;
+    `);
+
+    for (const entry of CAPITAL_BACKFILL) {
+      await pool.query(
+        `
+        UPDATE countries
+        SET capital_name = COALESCE(capital_name, $3),
+            capital_latitude = COALESCE(capital_latitude, $4),
+            capital_longitude = COALESCE(capital_longitude, $5)
+        WHERE (capital_latitude IS NULL OR capital_longitude IS NULL)
+          AND (
+            UPPER(code) = ANY($1::text[])
+            OR LOWER(name) = ANY($2::text[])
+          )
+        `,
+        [
+          entry.codes,
+          entry.names,
+          entry.capital.name,
+          entry.capital.lat,
+          entry.capital.lng,
+        ]
+      );
+    }
 
     console.log("✅ DB Initialized Successfully");
 

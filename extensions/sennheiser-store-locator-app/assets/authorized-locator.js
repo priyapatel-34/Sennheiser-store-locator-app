@@ -1,5 +1,4 @@
 const GOOGLE_MAPS_API_KEY = 'AIzaSyDHtyLmeYuEQGSsZQMB6FOTWe1IiGtJ7Bg';
-const GOOGLE_MAP_ID = 'DEMO_MAP_ID';
 const DEFAULT_RADIUS = 5;
 const RADIUS_OPTIONS = [5, 10, 15, 20, 25];
 const DEFAULT_MAP_ZOOM = 5;
@@ -22,10 +21,21 @@ let isFetchingNearby = false;
 let suggestionTimer = null;
 let autocompleteService = null;
 let placesService = null;
-
 const getDistanceUnit = () => window.DISTANCE_UNIT || 'km';
 
 const getApiBaseUrl = () => (window.RETAILER_API_URL || '').replace(/\/$/, '');
+
+function placesCountryCode(code) {
+    if (!code) return null;
+    const value = String(code).trim().toLowerCase();
+    return value === 'uk' ? 'gb' : value;
+}
+
+function mapsRegionCode(code) {
+    const normalized = placesCountryCode(code);
+    if (!normalized) return null;
+    return normalized === 'gb' ? 'uk' : normalized;
+}
 
 const TOAST = {
     selectSuggestion: 'Please select a location from the suggestions list.',
@@ -94,6 +104,20 @@ async function bootstrapGoogleMaps() {
             return;
         }
 
+        window.gm_authFailure = () => {
+            const pageUrl = window.location.href;
+            console.error(
+                "Google Maps rejected this page (RefererNotAllowedMapError). Authorize this URL on the API key:",
+                pageUrl
+            );
+            const container = document.getElementById("map-container");
+            if (container && !container.dataset.mapAuthError) {
+                container.dataset.mapAuthError = "true";
+                container.innerHTML =
+                    `<p class="map-auth-error">Map unavailable. Authorize ${window.location.origin} for the Google Maps API key.</p>`;
+            }
+        };
+
         window.initGoogleMapsCallback = () => {
 
             autocompleteService =
@@ -112,8 +136,16 @@ async function bootstrapGoogleMaps() {
 
         script.id = "googleMapsScript";
 
-        script.src =
-            `https://maps.googleapis.com/maps/api/js?key=${GOOGLE_MAPS_API_KEY}&libraries=places&v=weekly&callback=initGoogleMapsCallback`;
+        const region = mapsRegionCode(App.storeCountryCode);
+        const params = new URLSearchParams({
+            key: GOOGLE_MAPS_API_KEY,
+            libraries: "places",
+            v: "weekly",
+            callback: "initGoogleMapsCallback",
+        });
+        if (region) params.set("region", region);
+
+        script.src = `https://maps.googleapis.com/maps/api/js?${params.toString()}`;
 
         script.async = true;
         script.defer = true;
@@ -137,10 +169,17 @@ async function initGoogleMap() {
     const initialCenter = App.defaultMapCenter || { lat: 0, lng: 0 };
     const initialZoom = App.defaultMapCenter ? App.defaultMapZoom : 2;
 
+    if (!App.defaultMapCenter) {
+        console.error(
+            "Map init: store country center is missing for",
+            SHOP,
+            App.storeCountryCode
+        );
+    }
+
     App.map = new Map(mapContainer, {
         zoom: initialZoom,
         center: initialCenter,
-        mapId: GOOGLE_MAP_ID,
         mapTypeControl: true,
         fullscreenControl: true,
         zoomControl: true,
@@ -1018,7 +1057,7 @@ async function loadNearbyStores() {
                     !App.showGlobalRetailers &&
                     place.countryCode &&
                     App.storeCountryCode &&
-                    place.countryCode !== App.storeCountryCode
+                    placesCountryCode(place.countryCode) !== App.storeCountryCode
                 ) {
                     hideLocationLoader();
                     if (resetBtn) resetBtn.style.display = 'block';
@@ -1226,16 +1265,16 @@ async function loadFilterSettings() {
         if (result.success && result.data.length > 0) {
             const settings = result.data[0];
             document.querySelector('.right-wrap')?.classList.toggle('no-filters', !settings.filter_enabled);
-            App.storeCountryCode = settings.country_code
-                ? String(settings.country_code).toLowerCase()
-                : null;
+            App.storeCountryCode = placesCountryCode(settings.country_code);
             App.storeCountryName = settings.country_name || null;
             App.showGlobalRetailers = Boolean(settings.show_global_retailers);
 
-            if (settings.capital_latitude && settings.capital_longitude) {
+            const capitalLat = settings.capital_latitude;
+            const capitalLng = settings.capital_longitude;
+            if (capitalLat != null && capitalLat !== "" && capitalLng != null && capitalLng !== "") {
                 App.defaultMapCenter = {
-                    lat: parseFloat(settings.capital_latitude),
-                    lng: parseFloat(settings.capital_longitude),
+                    lat: parseFloat(capitalLat),
+                    lng: parseFloat(capitalLng),
                 };
             } else {
                 App.defaultMapCenter = null;

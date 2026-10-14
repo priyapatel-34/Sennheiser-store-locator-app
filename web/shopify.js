@@ -1,6 +1,5 @@
 import dotenv from "dotenv";
 dotenv.config();
-import { pool } from "./db/db.js";
 import { BillingInterval } from "@shopify/shopify-api";
 import { shopifyApp } from "@shopify/shopify-app-express";
 import { restResources } from "@shopify/shopify-api/rest/admin/2024-10";
@@ -70,24 +69,7 @@ const shopify = shopifyApp({
 
   auth: {
     path: "/api/auth",
-
     callbackPath: "/api/auth/callback",
-
-    afterAuth: async ({ session }) => {
-      await pool.query(
-        `
-        INSERT INTO stores (
-          shop_domain,
-          is_installed
-        )
-        VALUES ($1, true)
-        ON CONFLICT (shop_domain)
-        DO UPDATE SET
-          is_installed = true
-        `,
-        [session.shop]
-      );
-    }
   },
 
   webhooks: {

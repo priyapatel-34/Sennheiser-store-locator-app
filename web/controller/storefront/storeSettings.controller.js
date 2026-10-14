@@ -1,4 +1,5 @@
 import { pool } from "../../db/db.js";
+import { ensureStoreRegistered } from "../../lib/registerStore.js";
 
 export async function getFilters(req, res) {
   try {
@@ -9,6 +10,12 @@ export async function getFilters(req, res) {
         success: false,
         error: "shop is required",
       });
+    }
+
+    try {
+      await ensureStoreRegistered(shop);
+    } catch (err) {
+      console.error("Failed to ensure store registration for settings:", shop, err);
     }
 
     const storeResult = await pool.query(
@@ -50,6 +57,7 @@ export async function getFilters(req, res) {
       data: result.rows,
     });
   } catch (err) {
+    console.error("getFilters error:", err);
     return res.status(500).json({
       success: false,
       error: err.message,

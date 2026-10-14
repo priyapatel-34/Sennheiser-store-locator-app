@@ -1,4 +1,5 @@
 import { DeliveryMethod } from "@shopify/shopify-api";
+import { pool } from "./db/db.js";
 
 /**
  * @type {{[key: string]: import("@shopify/shopify-api").WebhookHandler}}
@@ -71,6 +72,22 @@ export default {
    *
    * https://shopify.dev/docs/apps/webhooks/configuration/mandatory-webhooks#shop-redact
    */
+  APP_UNINSTALLED: {
+    deliveryMethod: DeliveryMethod.Http,
+    callbackUrl: "/api/webhooks",
+    callback: async (_topic, shop) => {
+      try {
+        await pool.query(
+          `UPDATE stores SET is_installed = false WHERE shop_domain = $1`,
+          [shop]
+        );
+        console.log("Store marked uninstalled:", shop);
+      } catch (err) {
+        console.error("Failed to mark store uninstalled:", shop, err);
+      }
+    },
+  },
+
   SHOP_REDACT: {
     deliveryMethod: DeliveryMethod.Http,
     callbackUrl: "/api/webhooks",
