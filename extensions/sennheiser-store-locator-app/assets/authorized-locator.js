@@ -66,6 +66,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         await initGoogleMap();
     } catch (err) {
         console.error('Map init failed:', err);
+        document.getElementById('map-container')?.classList.add('map-loaded');
     }
 });
 
@@ -111,10 +112,13 @@ async function bootstrapGoogleMaps() {
                 pageUrl
             );
             const container = document.getElementById("map-container");
-            if (container && !container.dataset.mapAuthError) {
-                container.dataset.mapAuthError = "true";
-                container.innerHTML =
-                    `<p class="map-auth-error">Map unavailable. Authorize ${window.location.origin} for the Google Maps API key.</p>`;
+            if (container) {
+                container.classList.add("map-loaded");
+                if (!container.dataset.mapAuthError) {
+                    container.dataset.mapAuthError = "true";
+                    container.innerHTML =
+                        `<p class="map-auth-error">Map unavailable. Authorize ${window.location.origin} for the Google Maps API key.</p>`;
+                }
             }
         };
 
@@ -186,13 +190,21 @@ async function initGoogleMap() {
         streetViewControl: true,
     });
 
-    if (App.stores.length) {
-        google.maps.event.addListenerOnce(App.map, 'idle', async () => {
-            mapContainer.classList.add('map-loaded');
-            await placeStoreMarkers(App.stores);
-            fitBoundsToMarkers();
-        });
+    mapContainer.classList.add('map-loaded');
+
+    if (!App.stores.length) {
+        if (App.defaultMapCenter) {
+            App.map.setCenter(App.defaultMapCenter);
+            App.map.setZoom(App.defaultMapZoom);
+        }
+        google.maps.event.trigger(App.map, 'resize');
+        return;
     }
+
+    google.maps.event.addListenerOnce(App.map, 'idle', async () => {
+        await placeStoreMarkers(App.stores);
+        fitBoundsToMarkers();
+    });
 }
 
 // MARKERS
@@ -364,6 +376,14 @@ async function reinitializeMap({
         google.maps.event.addListenerOnce(App.map, 'idle', resolve);
         setTimeout(resolve, 500);
     });
+
+    document.getElementById('map-container')?.classList.add('map-loaded');
+
+    if (!App.stores.length && !showUserLocation && App.defaultMapCenter) {
+        App.map.setCenter(App.defaultMapCenter);
+        App.map.setZoom(App.defaultMapZoom);
+        return;
+    }
 
     await placeStoreMarkers(App.stores);
 
