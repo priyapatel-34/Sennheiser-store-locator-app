@@ -1309,11 +1309,21 @@ async function loadFilterSettings() {
 
 // RENDER
 
+function compareDealersByName(a, b) {
+    const byName = (a.name || '').localeCompare(b.name || '', undefined, { sensitivity: 'base' });
+    if (byName !== 0) return byName;
+    return (a.city || '').localeCompare(b.city || '', undefined, { sensitivity: 'base' });
+}
+
 function renderRetailers(data, radius = null) {
     const container = document.getElementById('retailers-list');
     if (!container) return;
 
-    if (!data?.length) {
+    const dealers = !radius && data?.length
+        ? [...data].sort(compareDealersByName)
+        : data;
+
+    if (!dealers?.length) {
         container.innerHTML = `
       <div class="no-retailers-found">
         <div class="empty-icon">
@@ -1328,7 +1338,7 @@ function renderRetailers(data, radius = null) {
         return;
     }
 
-    container.innerHTML = data.map(item => {
+    container.innerHTML = dealers.map(item => {
         const address = [item.address_line1]
             .filter(Boolean).join(', ');
 

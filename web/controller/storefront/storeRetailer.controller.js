@@ -723,14 +723,20 @@ export async function getRetailers(req, res) {
       searchLng !== null &&
       !Number.isNaN(searchLng);
 
-    let whereConditions = [`r.store_id = $1`, `r.status = 'active'`];
-    let values = [store_id];
-    let index = 2;
+    let whereConditions = [`r.status = 'active'`];
+    let values = [];
+    let index = 1;
 
-    if (!showGlobalRetailers && storeCountryId) {
-      whereConditions.push(`r.country_id = $${index}`);
-      values.push(storeCountryId);
+    if (!showGlobalRetailers) {
+      whereConditions.push(`r.store_id = $${index}`);
+      values.push(store_id);
       index++;
+
+      if (storeCountryId) {
+        whereConditions.push(`r.country_id = $${index}`);
+        values.push(storeCountryId);
+        index++;
+      }
     }
 
     if (country) {
@@ -859,7 +865,7 @@ export async function getRetailers(req, res) {
       GROUP BY
         r.id,
         c.name
-      ORDER BY r.id DESC
+      ORDER BY LOWER(r.name) ASC, LOWER(COALESCE(r.city, '')) ASC, r.id ASC
     `;
 
     const result = await pool.query(query, values);

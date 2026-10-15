@@ -21,7 +21,7 @@ export async function getCategories(req, res) {
       });
     }
 
-    const store_id = 3;
+    const store_id = storeResult.rows[0].id;
 
     const result = await pool.query(
       `SELECT * FROM categories

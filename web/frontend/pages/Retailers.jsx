@@ -508,32 +508,43 @@ const ImportCSVModal = ({ open, onClose, onSuccess }) => {
   );
 };
 
-const ExportCSVModal = ({ open, onClose, retailers }) => {
-  const csvContent = useMemo(() => {
-    if (!retailers || retailers.length === 0) return "";
-    const rows = retailers.map((r) => [
-      r.name || "",
-      r.retailer_type || "",
-      r.status || "",
-      r.address_line1 || "",
-      r.address_line2 || "",
-      r.city || "",
-      r.state || "",
-      r.country || "",
-      r.postal_code || "",
-      r.latitude || "",
-      r.longitude || "",
-      r.phone || "",
-      r.email || "",
-      r.website_url || "",
-      r.google_maps_link || "",
-      r.opening_hours || "",
-      r.categories || "",
-      r.notes || "",
-    ]);
-    return [CSV_TEMPLATE_HEADERS, ...rows].map((row) => row.map((cell) => `"${String(cell).replace(/"/g, '""')}"`).join(",")).join("\n");
-  }, [retailers]);
-}
+const buildRetailersCsv = (retailers) => {
+  const rows = retailers.map((r) => [
+    r.name || "",
+    r.retailer_type || "",
+    r.status || "",
+    r.address_line1 || "",
+    r.address_line2 || "",
+    r.city || "",
+    r.state || "",
+    r.country || "",
+    r.postal_code || "",
+    r.latitude || "",
+    r.longitude || "",
+    r.phone || "",
+    r.email || "",
+    r.website_url || "",
+    r.google_maps_link || "",
+    r.opening_hours || "",
+    r.categories || "",
+    r.notes || "",
+  ]);
+  return [CSV_TEMPLATE_HEADERS, ...rows]
+    .map((row) => row.map((cell) => `"${String(cell).replace(/"/g, '""')}"`).join(","))
+    .join("\n");
+};
+
+const downloadRetailersCsv = (retailers, filename) => {
+  const blob = new Blob([buildRetailersCsv(retailers)], { type: "text/csv;charset=utf-8;" });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = filename;
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  URL.revokeObjectURL(url);
+};
 
 
 // ─── Retailers Manager (Main) ─────────────────────────────────────────────────
@@ -549,7 +560,6 @@ const RetailersManager = () => {
   const [isUpdatingSettings, setIsUpdatingSettings] = useState(false);
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [isImportOpen, setIsImportOpen] = useState(false);
-  const [isExportOpen, setIsExportOpen] = useState(false);
   const [editingRetailer, setEditingRetailer] = useState(null);
   const [deleteContext, setDeleteContext] = useState(null);
   const [newRetailer, setNewRetailer] = useState(EMPTY_RETAILER);
@@ -662,10 +672,33 @@ const RetailersManager = () => {
     if (ok) setFilterEnabled(next);
   };
 
+  const exportRetailers = () => {
+    const selectedIds = new Set(selectedResources.map(String));
+    const rows = selectedIds.size
+      ? retailers.filter((retailer) => selectedIds.has(String(retailer.id)))
+      : retailers;
+
+    if (!rows.length) {
+      showToast("No retailers to export", true);
+      return;
+    }
+
+    const filename = selectedIds.size
+      ? `retailers-selected-${rows.length}.csv`
+      : "retailers.csv";
+    downloadRetailersCsv(rows, filename);
+    showToast(selectedIds.size
+      ? `Exported ${rows.length} selected retailer${rows.length === 1 ? "" : "s"}`
+      : `Exported ${rows.length} retailer${rows.length === 1 ? "" : "s"}`);
+  };
+
   const handleGlobalToggle = async () => {
     const next = !showGlobalRetailers;
     const ok = await updateSetting(filterEnabled, next, next ? "Global retailers enabled" : "Country-wise retailers enabled");
-    if (ok) setShowGlobalRetailers(next);
+    if (ok) {
+      setShowGlobalRetailers(next);
+      await fetchRetailers();
+    }
   };
 
   // ── CRUD ──
@@ -819,7 +852,13 @@ const RetailersManager = () => {
       subtitle="Manage retailer locations for your Shopify extension app."
       fullWidth
       primaryAction={{ content: "Add Retailer", onAction: () => setIsCreateOpen(true) }}
-      secondaryActions={[{ content: "Import CSV", onAction: () => setIsImportOpen(true) }]}
+      secondaryActions={[
+        {
+          content: selectedResources.length ? `Export Retailers (${selectedResources.length})` : "Export CSV",
+          onAction: exportRetailers,
+        },
+        { content: "Import CSV", onAction: () => setIsImportOpen(true) },
+      ]}
       titleMetadata={<Badge tone="info">{`${retailers.length} total`}</Badge>}
     >
       {/* Settings Card */}
@@ -827,7 +866,7 @@ const RetailersManager = () => {
         <Card padding="0">
           <ToggleRow
             label="Global Retailers"
-            description="Show retailers from all countries on storefront"
+            description="Show retailers from all countries in this list and on the storefront"
             enabled={showGlobalRetailers}
             onToggle={handleGlobalToggle}
             disabled={isUpdatingSettings}
@@ -854,6 +893,10 @@ const RetailersManager = () => {
           </Text>
 
           <InlineStack gap="200">
+            <Button onClick={exportRetailers}>
+              Export Selected
+            </Button>
+
             <Button
               onClick={clearSelection}
             >
@@ -927,7 +970,6 @@ const RetailersManager = () => {
       </BlockStack>
 
       {/* Modals */}
-      <ExportCSVModal open={isExportOpen} onClose={() => setIsExportOpen(false)} retailers={retailers} />
       <ImportCSVModal open={isImportOpen} onClose={() => setIsImportOpen(false)} onSuccess={fetchRetailers} />
 
       <Modal

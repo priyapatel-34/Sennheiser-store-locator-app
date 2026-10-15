@@ -59,6 +59,21 @@ async function getShopIdFromSession(res) {
 export async function getRetailers(req, res) {
   try {
     const store_id = await getShopIdFromSession(res);
+    const settingsResult = await pool.query(
+      `
+      SELECT
+        s.country_id,
+        COALESCE(a.show_global_retailers, false) AS show_global_retailers
+      FROM stores s
+      LEFT JOIN admin_settings a
+        ON a.store_id = s.id
+      WHERE s.id = $1
+      LIMIT 1
+      `,
+      [store_id]
+    );
+    const showGlobalRetailers = settingsResult.rows[0]?.show_global_retailers === true;
+    const storeCountryId = settingsResult.rows[0]?.country_id ?? null;
     const { country, category, search, lat, lng, radius } = req.query;
     const cleanSearch = search
       ? search.trim().replace(/\s+/g, " ")
@@ -95,7 +110,13 @@ export async function getRetailers(req, res) {
       LEFT JOIN retailer_categories rc ON r.id = rc.retailer_id
       LEFT JOIN categories cat ON rc.category_id = cat.id
 
-     WHERE r.store_id = $1
+     WHERE (
+        $5::boolean = true
+        OR (
+          r.store_id = $1
+          AND ($6::int IS NULL OR r.country_id = $6)
+        )
+      )
       AND ($2::text IS NULL OR c.name ILIKE $2)
       AND ($3::text IS NULL OR cat.name ILIKE $3)
       AND (
@@ -173,6 +194,8 @@ export async function getRetailers(req, res) {
       country ? `%${country}%` : null,
       category ? `%${category}%` : null,
       cleanSearch,
+      showGlobalRetailers,
+      storeCountryId,
     ];
 
     const result = await pool.query(query, values);
